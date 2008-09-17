@@ -23,6 +23,7 @@ namespace TowerDefence
         Vector2 mousePos = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
         Enemy enemy;
         Follow f;
+        Tower[] towers;
 
         public Game1()
         {
@@ -55,11 +56,12 @@ namespace TowerDefence
             enemy = new Enemy(new Vector2(250, 50));
             f = new Follow(Follow.DefaultPath, enemy.position_, 10);
             grid = new Square[10, 10];
+            towers = new Tower[10];
             for (int i = 0; i < 10; i++)
             {
                 for (int j = 0; j < 10; j++)
                 {
-                    grid[i, j] = new Square(j, i);
+                    grid[i, j] = new Square(50 * j + 50 , 50 * i + 50);
                 }
             }
 
@@ -83,6 +85,28 @@ namespace TowerDefence
         protected override void Update(GameTime gameTime)
         {
             mousePos = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
+            if (FindSquare() != null)
+            {
+                if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+                {
+                    bool added = false;
+                    int i = 0;
+                    if (FindSquare().occupied == false)
+                    {
+                        while (added == false && i < 10)
+                        {
+                            if (towers[i] == null)
+                            {
+                                towers[i] = new Tower(75, FindSquare().position);
+                                FindSquare().occupied = true;
+                                added = true;
+                            }
+                            else
+                                i++;
+                        }
+                    }
+                }
+            }
             f.Move(1, out enemy.position_);
 
             //while (f.Move(1, out enemy.position_))
@@ -103,24 +127,45 @@ namespace TowerDefence
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            int i = (int)mousePos.Y / 50;
-            int j = (int)mousePos.X / 50;
-
             graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin(SpriteBlendMode.AlphaBlend);
             spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\gridpath"), viewportRect, Color.White);
-            if (i > 0 && i < 11 && j > 0 && j < 11)
+            if (FindSquare() != null)
+            {
+                Vector2 position = FindSquare().position;
                 spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\highlighted"),
-                    new Rectangle(j * 50, i * 50, 50, 50),
+                    new Rectangle((int)position.X, (int)position.Y,50,50),
                     Color.White);
-            spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\cursor"), mousePos, Color.White);
+            }
             spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\enemy"), enemy.position_, Color.White);
+            foreach (Tower t in towers)
+            {
+                if (t != null)
+                    spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\tower"), t.position_, Color.White);
+            }
 
+
+            spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\cursor"), mousePos, Color.White);
             spriteBatch.End();
 
             // TODO: Add your drawing code here
 
             base.Draw(gameTime);
+        }
+
+        // Method to find which square of the grid the mouse is hovering over..
+        private Square FindSquare()
+        {
+            int i = (int)mousePos.Y / 50;
+            int j = (int)mousePos.X / 50;
+            i--;
+            j--;
+            if (i >= 0 && i < 10 && j >= 0 && j < 10)
+            {
+                return grid[i, j];
+            }
+            else
+                return null;
         }
     }
 }

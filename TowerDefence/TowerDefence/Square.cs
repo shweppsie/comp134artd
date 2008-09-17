@@ -9,16 +9,14 @@ namespace TowerDefence
     class Square
     {
         public bool occupied;
-        public bool highlighted;
-        public int xcoord;
-        public int ycoord;
+        public Vector2 position;
 
-        public Square(int X, int Y)
+        public Square(float X, float Y)
         {
             occupied = false;
-            highlighted = false;
-            xcoord = X;
-            ycoord = Y;
+            position = new Vector2(X, Y);
         }
+
+        
     }
 }
