@@ -1,0 +1,126 @@
+using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.GamerServices;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Net;
+using Microsoft.Xna.Framework.Storage;
+
+namespace TowerDefence
+{
+    /// <summary>
+    /// This is the main type for your game
+    /// </summary>
+    public class Game1 : Microsoft.Xna.Framework.Game
+    {
+        GraphicsDeviceManager graphics;
+        SpriteBatch spriteBatch;
+        Rectangle viewportRect;
+        Square[,] grid;
+        Vector2 mousePos = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
+        Enemy enemy;
+        Follow f;
+
+        public Game1()
+        {
+            graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
+        }
+
+        /// <summary>
+        /// Allows the game to perform any initialization it needs to before starting to run.
+        /// This is where it can query for any required services and load any non-graphic
+        /// related content.  Calling base.Initialize will enumerate through any components
+        /// and initialize them as well.
+        /// </summary>
+        protected override void Initialize()
+        {
+            // TODO: Add your initialization logic here
+
+            base.Initialize();
+        }
+
+        /// <summary>
+        /// LoadContent will be called once per game and is the place to load
+        /// all of your content.
+        /// </summary>
+        protected override void LoadContent()
+        {
+            // Create a new SpriteBatch, which can be used to draw textures.
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            viewportRect = new Rectangle(0, 0, 600, 600);
+            enemy = new Enemy(new Vector2(250, 50));
+            f = new Follow(Follow.DefaultPath, enemy.position_, 10);
+            grid = new Square[10, 10];
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    grid[i, j] = new Square(j, i);
+                }
+            }
+
+            // TODO: use this.Content to load your game content here
+        }
+
+        /// <summary>
+        /// UnloadContent will be called once per game and is the place to unload
+        /// all content.
+        /// </summary>
+        protected override void UnloadContent()
+        {
+            // TODO: Unload any non ContentManager content here
+        }
+
+        /// <summary>
+        /// Allows the game to run logic such as updating the world,
+        /// checking for collisions, gathering input, and playing audio.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Update(GameTime gameTime)
+        {
+            mousePos = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
+            f.Move(1, out enemy.position_);
+
+            //while (f.Move(1, out enemy.position_))
+            //{
+            //    spriteBatch.Begin();
+            //    spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\enemy"), enemy.position_, Color.White);
+            //    spriteBatch.End();
+            //}
+
+            // TODO: Add your update logic here
+
+            base.Update(gameTime);
+        }
+
+        /// <summary>
+        /// This is called when the game should draw itself.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Draw(GameTime gameTime)
+        {
+            int i = (int)mousePos.Y / 50;
+            int j = (int)mousePos.X / 50;
+
+            graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+            spriteBatch.Begin(SpriteBlendMode.AlphaBlend);
+            spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\gridpath"), viewportRect, Color.White);
+            if (i > 0 && i < 11 && j > 0 && j < 11)
+                spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\highlighted"),
+                    new Rectangle(j * 50, i * 50, 50, 50),
+                    Color.White);
+            spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\cursor"), mousePos, Color.White);
+            spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\enemy"), enemy.position_, Color.White);
+
+            spriteBatch.End();
+
+            // TODO: Add your drawing code here
+
+            base.Draw(gameTime);
+        }
+    }
+}
