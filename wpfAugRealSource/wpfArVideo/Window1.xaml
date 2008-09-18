@@ -1,0 +1,44 @@
+﻿<Window x:Class="wpfArVideo.Window1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="/wpfArVideo" Height="550" Width="650"
+    >
+  <StackPanel>
+    <StackPanel Orientation="Horizontal">
+      <ComboBox Name="cbDevices"></ComboBox>
+      <Button Name="btnVideoStart">start video</Button>
+      <Button Name="btnTrackStart">track start</Button>
+      <Button Name="btnTrackStop">track stop</Button>
+    </StackPanel>
+    <Viewbox>
+      <Grid Width="640" Height="480">
+        <Image Name="videoImage">
+          <Image.RenderTransform>
+            <ScaleTransform ScaleY="-1" CenterY="240"/>
+          </Image.RenderTransform>
+        </Image>
+        <Viewport3D Width="640" Height="480" Name="v3d">
+
+          <ModelVisual3D x:Name="modelMarkers"/>
+
+          <!-- Light sources. -->
+          <ModelVisual3D>
+            <ModelVisual3D.Content>
+              <Model3DGroup>
+                <AmbientLight Color="#404040" />
+                <DirectionalLight Color="#C0C0C0"
+                                  Direction="2 -3 -1" />
+              </Model3DGroup>
+            </ModelVisual3D.Content>
+          </ModelVisual3D>
+
+          <!-- Camera. -->
+          <Viewport3D.Camera>
+            <MatrixCamera x:Name="matrixCamera" />
+          </Viewport3D.Camera>
+        </Viewport3D>
+
+      </Grid>
+    </Viewbox>
+  </StackPanel>
+</Window>

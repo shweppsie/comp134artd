@@ -1,0 +1,350 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" >
+<HTML>
+	<HEAD>
+		<title>/wpfAugReal : Augmented Reality with WPF</title>
+	</HEAD>
+	<body style="font-family: Times New Roman">
+		<TABLE id="Table2" cellSpacing="1" cellPadding="1" width="100%" border="0">
+			<TR>
+				<TD>
+					<H1>/wpfAugReal</H1>
+					<H2>Augmented Reality with Windows Presentation Foundation</H2>
+					<P><A href="http://www.brains-N-brawn.com/wpfAugReal">http://www.brains-N-brawn.com/wpfAugReal</A>
+                        10/2/2007
+                        <IMG alt="casey chesnut" src="mailtoCaseyChesnut.png" border="0"></P>
+				</TD>
+				<TD align="right">
+					<A href="javascript:window.open('http://www.brains-N-brawn.com/Comment/default.aspx?article=wpfaugreal','','scrollbars=yes,width=550,height=550');void('');">
+						<FONT size="2">comment(s)</FONT></A>&nbsp;
+				</TD>
+			</TR>
+		</TABLE>
+		<h3>
+            Introduction</h3>
+        <p>
+            reality is too real ... it needs some fake in it. thus <a href="http://en.wikipedia.org/wiki/Augmented_reality">
+                augmented reality</a> (AR). if you're like me, the first thing you think about
+            when hearing the word 'augmentation' is breasts. sorry, but no boobies will be augmented
+            with this article. augmented reality isnt very common ... yet! one of the first
+            examples i noticed was a Demo video by <a href="http://video.google.com/videoplay?docid=6523761027552517909">
+                Total Immersions</a>. the first commercial application i noticed was in a video
+            by Philip Torrone (pt) playing with a <a href="http://www.makezine.com/blog/archive/2006/04/logitech_quickcam_orbit_mp_1.html">
+                Logitech Orbit MP</a> webcam. it works by doing face detection, and then overlaying
+            3D elements into the video stream. soon, Sony's PS3 will get an augmented reality
+            card game called '<a href="http://video.google.com/videoplay?docid=439500070960241347&q=eye+of+judgment&total=498&start=0&num=10&so=0&type=search&plindex=2">Eye
+                of Judgment</a>'. thought that was very cool, so i wanted to see if i could
+            use DirectShow and WPF 3D to add some fake/virtual to the real world.</p>	
+        <h3>
+        </h3>
+        <h3>
+            Overview</h3>
+        <p>
+            the first requirement is a camera to get video of the real world. second step is
+            to find features in the real world and determine their location and orientation
+            in respect to your camera. finding features might be done by reading 2D barcodes,
+            detecting faces, etc... i'm still an amateur when it comes to image processing,
+            so i decided to use one of the open source augmented reality libraries to do this
+            part for me. the final step is to layout a 3D scene over the video feed and introduce
+            virtual objects into the scene.</p>
+        <p>
+            hardware-wise, i developed on my notebook with an attached web cam. also got it
+            running on a UMPC with an integrated webcam, but it runs pretty slow and needs some
+            optimizations to improve performance.</p>
+        <h3>
+            AR Libraries</h3>
+        <p>
+            looked at the following open source libraries. each of these libraries use fudicial
+            markers (typically look like 2D barcodes), which can be printed out on paper.
+        </p>
+        <ul>
+            <li><a href="http://www.hitl.washington.edu/artoolkit/">
+            ArToolkit</a> - believe this was the first of the 3. it's a C++ lib that comes with
+                many sample applications and is pretty well documented.</li>
+            <li><a href="http://www.artag.net/">ArTag</a> - believe ArTag came after ArToolkit. this is another C++ lib which has some
+                samples and documentation. Stephen Cawood is currently writing 
+                <a href="http://www.amazon.com/Augmented-Reality-Home-understanding-technology/dp/1934356034/ref=pd_bbs_sr_4/002-2976631-3786419?ie=UTF8&s=books&qid=1190863406&sr=8-4">
+                Augmented Reality
+                @ Home</a> (preorder) which uses this library and will have C++ (and some C#) samples.
+            </li>
+            <li><a href="http://studierstube.icg.tu-graz.ac.at/handheld_ar/artoolkitplus.php">ArToolkitPlus</a>
+                - another C++ lib optimized to run on mobile devices. this lib doesnt
+                have many samples and isnt well documented, but its based on ArToolkit, so you can
+                refer to its documentation. UMPCs are somewhat CPU constrained, so i chose to use
+                this library.</li>
+            <li><a href="http://www1.cs.columbia.edu/graphics/projects/goblin/goblinXNA.htm">
+            Goblin
+                XNA</a> - currently under development ... for AR using XNA! the code isnt released
+                yet and i dont think it will run on an Xbox 360 since we havent been provided access
+                to the live camera yet. not sure which library this one is based on?</li>
+        </ul>
+        <p>
+            regarding books, i also really liked <a href="http://www.amazon.com/Spatial-Augmented-Reality-Merging-Virtual/dp/1568812302/ref=pd_bbs_sr_3/002-2976631-3786419?ie=UTF8&s=books&qid=1190863406&sr=8-3">
+                Spatial Augmented Reality: Merging Real and Virtual Worlds</a></p>
+        <p>
+        </p>
+        <h3>
+            ArToolkitPlus
+        </h3>
+        <p>
+            the main reason i chose ArToolkitPlus (ARTK+) is because its the first library i
+            <a href="http://studierstube.icg.tu-graz.ac.at/handheld_ar/artoolkitplus_tutorial.php">
+                understood how to use</a>. i could easily see that it allowed me to pass it
+            an image and it would return matrices for the camera and marker position. the only
+            problem is that ArToolkitPlus is a C++ lib. so i had to convert it to a C++ DLL
+            and then export methods that could be pinvoked from C#. it now exports the following
+            methods : <a href="ARToolKitPlus.def.txt">ARToolKitPlus.def</a>. NOTE i only wrapped
+            about 2/3rds of all the methods available.</p>
+        <p>
+            ARTK+ has 1 main class (<a href="http://studierstube.icg.tu-graz.ac.at/handheld_ar/artoolkitplus_docu/class_a_r_tool_kit_plus_1_1_tracker.html">Tracker</a>)
+            with 2 derived classes (TrackerSingleMarker and TrackerMultiMarker). TrackerSingleMarker
+            is used to find an individual marker, while TrackerMultiMarker can obviously be
+            used to find many. the Markers are basically 2D barcodes which can be found in .gif
+            format (<a href="artoolkit_AllIdMarkers.gif">all markers</a>). the markers used
+            in these samples are 6x6 with a border. if more markers are needed, they can be
+            increased to 12x12 etc. the markers encode a unique id, error checking, and orientation
+            can be derived. the pic below is a marker.</p>
+        <p style="text-align: center">
+            <img src="marker.gif" />&nbsp;</p>
+        <p>
+            to test the wrapper, i recreated the ArToolkitPlus samples in C#. this code is in
+            the 'wpfArTest' project within the source code. these samples do not use video,
+            and just work against a single sample image.</p>
+        <h4 style="text-align: left">
+            <span style="text-decoration: underline">Single Marker - simple </span>
+        </h4>
+        <p>
+            this sample just looks for a single marker using the simple marker mode. the end
+            result is a marker ID, projection matrix, and a model view matrix. for the pic below,
+            the app creates a 3D rectangle at 0,0,0 with size 50,50,0. then a MatrixCamera is
+            transformed with the projection matrix and model view matrix ... and it lines up
+            perfect!</p>
+        <p style="text-align: center">
+            <img src="singleSimple.jpg" />&nbsp;</p>
+        <p>
+            here's the core code from this sample :</p>
+        <pre>    //set the background image that is being tracked against
+    //3D rectangles will be rendered over this image in a Viewport3D
+    string sample = "image_320_240_8_marker_id_simple_nr031";
+    Uri uriImage = new Uri("pack://siteoforigin:,,,/data/" + sample + ".jpg");
+    backImage.Source = new BitmapImage(uriImage);
+    //get the raw sample image bits the same way the sample does
+    //this will be done differently when using a webcam feed
+    string imagePath = "data/" + sample + ".raw";
+    int imageWidth = 320;
+    int imageHeight = 240;
+    int bytesPerPixel = 1;
+    byte[] imageBytes = new byte[imageWidth * imageHeight * bytesPerPixel];
+    int retVal = -1;
+    int numberOfBytesRead = ArManWrap.ARTKPLoadImagePath(imagePath, imageWidth, imageHeight, bytesPerPixel, imageBytes);
+    if (numberOfBytesRead <= 0)
+    {
+        throw new Exception("image not loaded");
+    }
+    //create the AR Tracker for finding a single marker
+    IntPtr tracker = ArManWrap.ARTKPConstructTrackerSingle(-1, imageWidth, imageHeight);
+    if (tracker == IntPtr.Zero)
+    {
+        throw new Exception("tracker construction failed");
+    }
+    //get the Tracker description
+    IntPtr ipDesc = ArManWrap.ARTKPGetDescription(tracker);
+    string desc = Marshal.PtrToStringAnsi(ipDesc);
+    //set pixel format of sample image
+    int pixelFormat = ArManWrap.ARTKPSetPixelFormat(tracker, (int)ArManWrap.PIXEL_FORMAT.PIXEL_FORMAT_LUM);
+    //init tracker with camera calibration file, near plane, and far plane
+    string cameraCalibrationPath = "data/LogitechPro4000.dat";
+    retVal = ArManWrap.ARTKPInit(tracker, cameraCalibrationPath, 1.0f, 1000.0f);
+    if (retVal != 0)
+    {
+        throw new Exception("tracker not initialized");
+    }
+    //set pattern width of markers (millimeters)
+    ArManWrap.ARTKPSetPatternWidth(tracker, 80);
+    //set border width percentage of marker (.25 is a huge border)
+    ArManWrap.ARTKPSetBorderWidth(tracker, 0.250f);
+    //set lighting threshold. this could be automatic
+    ArManWrap.ARTKPSetThreshold(tracker, 150);
+    //set undistortion mode
+    ArManWrap.ARTKPSetUndistortionMode(tracker, (int)ArManWrap.UNDIST_MODE.UNDIST_LUT);
+    //set tracker to look for simple ID-based markers
+    ArManWrap.ARTKPSetMarkerMode(tracker, (int)ArManWrap.MARKER_MODE.MARKER_ID_SIMPLE);
+    //now that tracker is finally setup ... find the marker
+    //in a video based app, setup will happen once and then marker detection will happen in a loop
+    int pattern = -1;
+    bool updateMatrix = true;
+    IntPtr markerInfos = IntPtr.Zero;
+    int numMarkers;
+    int markerId = ArManWrap.ARTKPCalc(tracker, imageBytes, pattern, updateMatrix, out markerInfos, out numMarkers);
+    //clear any markers that already exist in Viewport3D
+    modelMarkers.Children.Clear();
+    if (numMarkers == 1)
+    {
+        //add rectangle marker to 3D scene at the origin
+        AddMarker(Brushes.Cyan);
+        //marshal the MarkerInfo from native to managed
+        ArManWrap.ARMarkerInfo markerInfo = (ArManWrap.ARMarkerInfo)Marshal.PtrToStructure(markerInfos, typeof(ArManWrap.ARMarkerInfo));
+        float[] center = new float[] { 0, 0 };
+        float width = 50;
+        float[] markerMatrix = new float[12];
+        //determine how marker is related to camera
+        //just getting the data for kicks here ... not actually using it
+        //in this sample, the transformations are only applied to the camera and the marker stays at the origin
+        //alternately, the camera could be left at the origin and the marker(s) could be transformed
+        float retTransMat = ArManWrap.ARTKPGetTransMat(tracker, markerInfos, center, width, markerMatrix);
+        Marshal.DestroyStructure(markerInfos, typeof(ArManWrap.ARMarkerInfo));                    
+    }
+    //how confident is the marker tracking?
+    float conf = ArManWrap.ARTKPGetConfidence(tracker);
+    //get model view matrix
+    float[] modelViewMatrix = new float[16];
+    ArManWrap.ARTKPGetModelViewMatrix(tracker, modelViewMatrix);
+    //get projection matrix
+    float[] projMatrix = new float[16];
+    ArManWrap.ARTKPGetProjectionMatrix(tracker, projMatrix);
+    //dispose of tracker
+    ArManWrap.ARTKPCleanup(tracker, IntPtr.Zero);
+    //apply model view matrix to MatrixCamera
+    Matrix3D wpfModelViewMatrix = ArManWrap.GetWpfMatrixFromOpenGl(modelViewMatrix);
+    matrixCamera.ViewMatrix = wpfModelViewMatrix;
+    //apply projection matrix to MatrixCamera
+    Matrix3D wpfProjMatrix = ArManWrap.GetWpfMatrixFromOpenGl(projMatrix);
+    matrixCamera.ProjectionMatrix = wpfProjMatrix;
+</pre>
+        <h4>
+            <span style="text-decoration: underline">Single Marker - BCH </span>
+        </h4>
+        <p>
+            this sample also uses a TrackerSingleMarker, but uses the BCH marker mode. the end
+            results and transformations are applied the same as above.</p>
+        <p style="text-align: center">
+            <img src="singleBch.jpg" />&nbsp;</p>
+        <h4>
+            <span style="text-decoration: underline">Multi Marker - config </span>
+        </h4>
+        <p>
+            this sample uses a TrackerMultiMaker with a <a href="markerboard_480-499.cfg.txt">config
+                file</a>. the config file specifies the relative position of all the marker
+            IDs on the sheet. so if only a single marker is detected, or some of the markers
+            are obstructed, then the rest of the markers can be derived using the config file.
+            the result is the found marker IDs, the projection and model view matrix for the
+            camera, and a transformation matrix for the camera. so the pic below was obtained
+            by transforming the MatrixCamera with the projection and model view matrix. each
+            marker was then created at 0,0,0 and then transformed based on the transformation
+            specified in the config file. the green rectangles are the markers that were detected
+            and the red rectangles are markers that were derived based on the config file.</p>
+        <p style="text-align: center">
+            <img border="1" src="multiConfig.jpg" />&nbsp;</p>
+        <h4>
+            <span style="text-decoration: underline">Multi Marker - distinct</span>
+        </h4>
+        <p>
+            this sample uses a TrackerMultiMarker without a config file. so each marker has
+            to be detected individually. if the marker is not detected or it is obstructed,
+            then its position cannot be derived. the end result is a projection matrix and a
+            transformation matrix for each individual marker. the projection matrix is applied
+            to the MatrixCamera, while its View matrix is set to the Identity matrix. the 3D
+            rectangles are then created at 0,0,0 and transformed with their own transformation.
+        </p>
+        <p style="text-align: center">
+            <img src="multiDistinct.jpg" />&nbsp;</p>
+        <p>
+            depending on which algorithm is used internally (ARTK+ offers a couple), then markers
+            can even be recognized on different planes. the pic below shows me holding up a
+            marker so that the 2 planes are almost perpendicular to each other, yet they are
+            both detected and the 3D rectangles are oriented correctly.</p>
+        <p style="text-align: center">
+            <img src="multiDistinct2.jpg" />&nbsp;</p>
+        <p>
+            NOTE it seems like tracking multiple distinct markers works best when the camera
+            is stable. when the camera is being moved, multiple markers with a config file works
+            better.</p>
+        <h3>
+            DirectShow
+        </h3>
+        <p>
+            the samples above were WPF applications with an &lt;Image&gt; tag as the background
+            and a &lt;Viewport3D&gt; overlaid. this works great and WPF can composite the 2
+            together. the problem is WPF doesnt provide any low-level hooks for DirectShow composition.
+            if i were
+            to host a WinForms control in the background then this would introduce the 'shared
+            airspace' problem, in which WinForms would take over the air space and WPF cannot
+            composite on top of it. not being able to overlay 3D elements defeats the whole
+            purpose. luckily, there are workarounds. i think Mike Brown implemented the first
+            workaround <a href="http://forums.microsoft.com/MSDN/ShowPost.aspx?PostID=756970&SiteID=1">
+                here</a>. since then, Jeremiah Morrill has come up with some other hacks. i
+            ended up using his <a href="http://jmorrill.hjtcentral.com/Home/tabid/428/EntryID/16/Default.aspx">
+                BitmapBuffer</a> hack paired with a DirectShow ISampleGrabber.BufferCB. so the
+            ISampleGrabber callback provides a pointer to a captured image. then it just copies
+            that memory directly to the BitmapBuffer sample and then invalidates the visual
+            to have the webcam video previewed in WPF and still support compositing. WPF really
+            needs to add some hooks for DirectShow support.</p>
+        <h3>
+            WPF 3D
+        </h3>
+        <p>
+            WPF 3D ended up being a great choice because ARTK+ returns matrices in OpenGL format.
+            this is great because both OpenGL and WPF 3D are right-handed coordinate systems.
+            depending on how i marshaled the matrices, i could apply the matrices directly
+            in WPF 3D using the MatrixCamera and MatrixTransform3D. so the 3D code ended up
+            being the simplest part out of the entire app.
+        </p>
+        <p>
+            WPF is also great because then you get all its power of compositing. so the virtual
+            objects introduced into the real world scene can be partially transparent, textured
+            with video, tiled images, etc... plus you get animation.</p>
+        <p>
+            aside, i recommend <a href="http://www.amazon.com/3D-Programming-Windows-Pro-Developer/dp/0735623945/ref=sr_1_1/002-2976631-3786419?ie=UTF8&s=books&qid=1190868880&sr=1-1">
+                3D Programming for Windows</a> as the path for learning 3D programming. my initial
+            foray into 3D programming was through Direct3D, and that became overly complicated
+            while trying to figure out Direct3D, game loops, etc... it should be much easier
+            for application developers to learn 3D through WPF and a more familiar app environment.</p>
+        <h3>
+            Video
+        </h3>
+        <p>
+            the video below shows it being used. NOTE the video is spliced in the middle (monitor
+            changes position) ... the demo gods attacked and broke my internet connection during
+            the first take.</p>
+        <ul>
+            <li><a href="http://www.youtube.com/watch?v=vPaXR24FP5g" target="_blank">
+                <img src="wpfAugRealVideo.jpg" />
+                /wpfAugReal video</a></li>
+        </ul>
+        <h3>
+            Conclusion
+        </h3>
+        <p>
+            this article shows how to write an augmented reality application using DirectShow, ArToolkitPlus,
+            and WPF 3D. the concepts shown here could be used to make your own
+            'Eye of Judgment' augmented reality card game. this ended up being simpler than i expected, only worked on it for a little over 2 weeks in my free time.
+        </p>
+        <p>
+            this was just one small example of augmented reality. there are many other potential
+            uses involving web cams, mobile devices, projectors, heads up displays, retina displays,
+            etc...
+        </p>
+        <h3>
+            Source
+        </h3>
+        <p>
+            TODO link the source code as one zip which includes the following</p>
+        <ul>
+            <li>ARToolKitPlus - modified to be a DLL and export C-style functions that can be pInvoked
+                from C#</li>
+            <li>ARTKPManagedWrapper - C# wrapper for pInvoking ARToolKitPlus</li>
+            <li>wpfArTest - app for testing the C# wrapper by recreating samples</li>
+            <li>wpfArVideo - uses AR wrapper, DirectShow, and WPF 3D (see video above)&nbsp;</li>
+            <li>marker images and other data used</li>
+            <li>C++ redistributable (had to be installed on UMPC)</li>
+        </ul>
+        <h3>
+            Updates
+        </h3>
+        <p>
+            none planned, although its pretty much certain that i'll revisit AR again</p>
+        <h3>
+            Future</h3>
+        <p>
+            there a bunch of different SDKs i want to play with. later</p>
+	</body>
+</html>

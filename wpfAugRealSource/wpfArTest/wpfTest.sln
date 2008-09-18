@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wpfTest", "wpfTest.csproj", "{C19F4FF9-8EDC-4F1B-B2E5-84A5C7C4D5D6}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ARTKPManagedWrapper", "..\ARTKPManagedWrapper\ARTKPManagedWrapper.csproj", "{19F7779E-6B11-4BE1-834A-C1ED2085B1FF}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wpfArVideo", "..\wpfArVideo\wpfArVideo.csproj", "{48108B16-BE40-4112-9E5C-CD8916423B02}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C19F4FF9-8EDC-4F1B-B2E5-84A5C7C4D5D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C19F4FF9-8EDC-4F1B-B2E5-84A5C7C4D5D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C19F4FF9-8EDC-4F1B-B2E5-84A5C7C4D5D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C19F4FF9-8EDC-4F1B-B2E5-84A5C7C4D5D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19F7779E-6B11-4BE1-834A-C1ED2085B1FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19F7779E-6B11-4BE1-834A-C1ED2085B1FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19F7779E-6B11-4BE1-834A-C1ED2085B1FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19F7779E-6B11-4BE1-834A-C1ED2085B1FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48108B16-BE40-4112-9E5C-CD8916423B02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48108B16-BE40-4112-9E5C-CD8916423B02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48108B16-BE40-4112-9E5C-CD8916423B02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48108B16-BE40-4112-9E5C-CD8916423B02}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
