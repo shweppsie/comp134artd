@@ -1,6 +1,3 @@
-//----------------------------------------------
-// (c) 2007 by casey chesnut, brains-N-brawn LLC
-//----------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -106,7 +103,7 @@ namespace wpfArVideo
         PixelFormat _mediaBitmapSourcePixelFormat = PixelFormats.Bgra32; //.Rgb24;
         Guid _sampleGrabberSubType = MediaSubType.ARGB32; //.RGB24;
         ArManWrap.PIXEL_FORMAT _arPixelFormat = ArManWrap.PIXEL_FORMAT.PIXEL_FORMAT_ABGR; //.PIXEL_FORMAT_RGB;
-        System.Drawing.Imaging.PixelFormat _bmpSavePixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppArgb; //.Format24bppRgb;
+        //System.Drawing.Imaging.PixelFormat _bmpSavePixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppArgb; //.Format24bppRgb;
 
         #region WPF_WEBCAM
         SnapShot.Capture cam = null;

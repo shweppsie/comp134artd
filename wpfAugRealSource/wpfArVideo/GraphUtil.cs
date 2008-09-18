@@ -366,9 +366,9 @@ namespace wpfArVideo
 			[PreserveSig] 
 			int SetElementTimes( 
 				[In, MarshalAs(UnmanagedType.LPWStr)] string pwcsName,  
-				[In] FILETIME pctime,  
-				[In] FILETIME patime,  
-				[In] FILETIME pmtime 
+				[In] System.Runtime.InteropServices.ComTypes.FILETIME pctime,
+                [In] System.Runtime.InteropServices.ComTypes.FILETIME patime,
+                [In] System.Runtime.InteropServices.ComTypes.FILETIME pmtime 
 				); 
  
 			[PreserveSig] 
@@ -381,8 +381,8 @@ namespace wpfArVideo
 				); 
  
 			[PreserveSig] 
-			int Stat( 
-				[Out] out STATSTG pStatStg,  
+			int Stat(
+                [Out] out System.Runtime.InteropServices.ComTypes.STATSTG pStatStg,  
 				[In] int grfStatFlag 
 				); 
 		} 
