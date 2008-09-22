@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using Microsoft.Xna.Framework;
 
 using ARTKPManagedWrapper;
 
@@ -105,6 +106,28 @@ namespace ImageRecognise
                 ArManWrap.ARTKPGetProjectionMatrix(tracker, projMatrix);
                 //dispose of tracker
                 ArManWrap.ARTKPCleanup(tracker, IntPtr.Zero);
+
+                Matrix m3d = new Matrix();
+                m3d.M11 = modelViewMatrix[0];
+                m3d.M12 = modelViewMatrix[1];
+                m3d.M13 = modelViewMatrix[2];
+                m3d.M14 = modelViewMatrix[3];
+                m3d.M21 = modelViewMatrix[4];
+                m3d.M22 = modelViewMatrix[5];
+                m3d.M23 = modelViewMatrix[6];
+                m3d.M24 = modelViewMatrix[7];
+                m3d.M31 = modelViewMatrix[8];
+                m3d.M32 = modelViewMatrix[9];
+                m3d.M33 = modelViewMatrix[10];
+                m3d.M34 = modelViewMatrix[11];
+                //m3d.OffsetX = modelViewMatrix[12];
+                //m3d.OffsetY = modelViewMatrix[13];
+                //m3d.OffsetZ = modelViewMatrix[14];
+                m3d.M44 = modelViewMatrix[15];
+
+                //m3d.Translation.X = modelViewMatrix[12];
+                //m3d.Translation.Y = modelViewMatrix[13];
+                //m3d.Translation.X = modelViewMatrix[14];
 
                 string text = "Confidence: " + conf + "\r\n";
 
