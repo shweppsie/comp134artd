@@ -16,17 +16,24 @@ namespace TowerDefence
         public Vector2 position_;
         public Vector2 destination_;
         private Tower origin;
+        int i;
 
         public Bullet(Vector2 startPos, Vector2 destination, Tower tower)
         {
             position_ = startPos;
             destination_ = destination;
             origin = tower;
+            i = 0;
         }
 
         public void Move()
-        {
-            
+        {            
+            position_ += (destination_ - position_) / 5;
+            i++; 
+            if (i == 15)
+            {
+                origin.bullet_ = null;
+            }
         }
     }
 }
