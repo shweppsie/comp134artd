@@ -162,9 +162,9 @@ namespace TowerDefence
             {
                 if (t != null)
                 {
-                    spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\tower"), t.position_, Color.White);
                     if (t.bullet_ != null)
                         spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\bullet"), t.bullet_.position_, Color.White);
+                    spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\tower"), t.position_, Color.White);
                 }
             }
 
