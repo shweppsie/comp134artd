@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Storage;
+using System.Diagnostics;
 
 namespace TowerDefence
 {
@@ -22,8 +23,8 @@ namespace TowerDefence
         Square[,] grid;
         Vector2 mousePos = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
         Enemy[] enemies;
-        Follow f;
         Tower[] towers;
+        Stopwatch watch;
 
         public Game1()
         {
@@ -53,11 +54,13 @@ namespace TowerDefence
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             viewportRect = new Rectangle(0, 0, 600, 600);
-            enemies = new Enemy[1];
+            enemies = new Enemy[20];
             enemies[0] = new Enemy(new Vector2(250, 50));
-            f = new Follow(Follow.DefaultPath, enemies[0].position_, 10);
             grid = new Square[10, 10];
             towers = new Tower[10];
+            watch = new Stopwatch();
+            watch.Start(); 
+
             for (int i = 0; i < 10; i++)
             {
                 for (int j = 0; j < 10; j++)
@@ -108,7 +111,10 @@ namespace TowerDefence
                     }
                 }
             }
-            f.Move(1, out enemies[0].position_);
+
+            SpawnEnemies();
+            MoveEnemies();
+            
             foreach (Tower t in towers)
             {
                 if (t != null)
@@ -119,19 +125,13 @@ namespace TowerDefence
                         t.bullet_.Move();
                 }                
             }
-            
-
-            //while (f.Move(1, out enemy.position_))
-            //{
-            //    spriteBatch.Begin();
-            //    spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\enemy"), enemy.position_, Color.White);
-            //    spriteBatch.End();
-            //}
 
             // TODO: Add your update logic here
 
             base.Update(gameTime);
         }
+
+
 
         /// <summary>
         /// This is called when the game should draw itself.
@@ -141,7 +141,9 @@ namespace TowerDefence
         {
             graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin(SpriteBlendMode.AlphaBlend);
+
             spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\gridpath"), viewportRect, Color.White);
+            
             if (FindSquare() != null)
             {
                 Vector2 position = FindSquare().position;
@@ -149,7 +151,13 @@ namespace TowerDefence
                     new Rectangle((int)position.X, (int)position.Y,50,50),
                     Color.White);
             }
-            spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\enemy"), enemies[0].position_, Color.White);
+
+            foreach (Enemy e in enemies)
+            {
+                if (e != null)
+                    spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\enemy"), e.position_, Color.White);
+            }
+
             foreach (Tower t in towers)
             {
                 if (t != null)
@@ -160,12 +168,11 @@ namespace TowerDefence
                 }
             }
 
-
             spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\cursor"), mousePos, Color.White);
+            
+            
+
             spriteBatch.End();
-
-            // TODO: Add your drawing code here
-
             base.Draw(gameTime);
         }
 
@@ -182,6 +189,36 @@ namespace TowerDefence
             }
             else
                 return null;
+        }
+
+        private void SpawnEnemies()
+        {
+            if (watch.ElapsedMilliseconds >= 1000)
+            {
+                for (int i = 0; i < enemies.Length; i++)
+                {
+                    if (enemies[i] == null)
+                    {
+                        enemies[i] = new Enemy(new Vector2(250, 50));
+                        break;
+                    }
+                }
+                watch.Reset();
+                watch.Start();
+            }
+        }
+
+        private void MoveEnemies()
+        {
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                if (enemies[i] != null)
+                {
+                    enemies[i].f.Move(1, out enemies[i].position_);
+                    if (enemies[i].hp <= 0)
+                        enemies[i] = null; ;
+                }
+            }
         }
     }
 }

@@ -14,22 +14,16 @@ namespace TowerDefence
     class Enemy
     {
         public Vector2 position_;
+        public int hp;
+        public Follow f;
+        public bool kill;
 
         public Enemy(Vector2 startPostion)
         {
             position_ = startPostion;
-        }
-
-        public void Move()
-        {
-            Follow f = new Follow(Follow.DefaultPath, position_, 20);
-            //Console.WriteLine("First pos: {0}", initPos);
-            while (f.Move(1, out position_))
-            {
-                //Console.WriteLine("New pos: {0}", initPos);
-                
-            }
-            //Console.WriteLine("End pos: {0}", initPos);
+            hp = 5;
+            f = new Follow(Follow.DefaultPath, position_, 10);
+            kill = false;
         }
     }
 }

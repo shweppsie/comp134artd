@@ -33,6 +33,8 @@ namespace TowerDefence
             if (i == 15)
             {
                 origin.bullet_ = null;
+                if (origin.target_ != null)
+                    origin.target_.hp--;
             }
         }
     }

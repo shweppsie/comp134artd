@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Storage;
+using System.Diagnostics;
 
 namespace TowerDefence
 {
@@ -17,6 +18,8 @@ namespace TowerDefence
         public Enemy target_;
         public Vector2 position_;
         public Bullet bullet_;
+        Stopwatch watch = new Stopwatch();
+
         public Tower(float radius, Vector2 position)
         {
             fireRadius_ = radius;
@@ -30,8 +33,15 @@ namespace TowerDefence
             {
                 if (bullet_ == null)
                 {
+                    watch.Start();
                     //fire a bullet at the targeted enemy
-                    bullet_ = new Bullet(new Vector2(position_.X+25, position_.Y+25), target_.position_, this);
+                    if (watch.ElapsedMilliseconds > 75)
+                    {
+                        bullet_ = new Bullet(new Vector2(position_.X + 25, position_.Y + 25), target_.position_, this);
+                        if (target_.hp <= 0)
+                            target_ = null;
+                        watch.Reset();
+                    }
                     
                 }
             }
@@ -46,10 +56,13 @@ namespace TowerDefence
             {                
                 foreach (Enemy e in enemies)
                 {
-                    if (range.Contains((int)e.position_.X, (int)e.position_.Y))
+                    if (e != null)
                     {
-                        target_ = e;
-                        break;
+                        if (range.Contains((int)e.position_.X, (int)e.position_.Y))
+                        {
+                            target_ = e;
+                            break;
+                        }
                     }
                 }
             }
