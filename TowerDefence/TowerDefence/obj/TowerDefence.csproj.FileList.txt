@@ -1,0 +1,14 @@
+bin\x86\Debug\Content\Sprites\tower.xnb
+bin\x86\Debug\Content\Sprites\grid.xnb
+bin\x86\Debug\Content\Sprites\cursor.xnb
+bin\x86\Debug\Content\Sprites\highlighted.xnb
+bin\x86\Debug\Content\Sprites\enemy.xnb
+bin\x86\Debug\Content\Sprites\gridpath.xnb
+bin\x86\Debug\TowerDefence.exe
+bin\x86\Debug\TowerDefence.pdb
+obj\x86\Debug\ResolveAssemblyReference.cache
+obj\x86\Debug\Microsoft.Xna.Framework.RuntimeProfile.txt
+obj\x86\Debug\TowerDefence.obj.x86.Debug.Microsoft.Xna.Framework.RuntimeProfile.txt
+obj\x86\Debug\TowerDefence.exe
+obj\x86\Debug\TowerDefence.pdb
+bin\x86\Debug\Content\Sprites\bullet.xnb
