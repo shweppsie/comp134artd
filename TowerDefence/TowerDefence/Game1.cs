@@ -21,7 +21,7 @@ namespace TowerDefence
         Rectangle viewportRect;
         Square[,] grid;
         Vector2 mousePos = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
-        Enemy enemy;
+        Enemy[] enemies;
         Follow f;
         Tower[] towers;
 
@@ -53,8 +53,9 @@ namespace TowerDefence
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             viewportRect = new Rectangle(0, 0, 600, 600);
-            enemy = new Enemy(new Vector2(250, 50));
-            f = new Follow(Follow.DefaultPath, enemy.position_, 10);
+            enemies = new Enemy[1];
+            enemies[0] = new Enemy(new Vector2(250, 50));
+            f = new Follow(Follow.DefaultPath, enemies[0].position_, 10);
             grid = new Square[10, 10];
             towers = new Tower[10];
             for (int i = 0; i < 10; i++)
@@ -97,7 +98,7 @@ namespace TowerDefence
                         {
                             if (towers[i] == null)
                             {
-                                towers[i] = new Tower(75, FindSquare().position);
+                                towers[i] = new Tower(175, FindSquare().position);
                                 FindSquare().occupied = true;
                                 added = true;
                             }
@@ -107,7 +108,18 @@ namespace TowerDefence
                     }
                 }
             }
-            f.Move(1, out enemy.position_);
+            f.Move(1, out enemies[0].position_);
+            foreach (Tower t in towers)
+            {
+                if (t != null)
+                {
+                    t.FindTarget(enemies);
+                    t.Shoot();
+                    if (t.bullet_ != null)
+                        t.bullet_.Move();
+                }                
+            }
+            
 
             //while (f.Move(1, out enemy.position_))
             //{
@@ -137,11 +149,15 @@ namespace TowerDefence
                     new Rectangle((int)position.X, (int)position.Y,50,50),
                     Color.White);
             }
-            spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\enemy"), enemy.position_, Color.White);
+            spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\enemy"), enemies[0].position_, Color.White);
             foreach (Tower t in towers)
             {
                 if (t != null)
+                {
                     spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\tower"), t.position_, Color.White);
+                    if (t.bullet_ != null)
+                        spriteBatch.Draw(Content.Load<Texture2D>("Sprites\\bullet"), t.bullet_.position_, Color.White);
+                }
             }
 
 
