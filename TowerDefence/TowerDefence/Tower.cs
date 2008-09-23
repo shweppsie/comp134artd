@@ -35,7 +35,7 @@ namespace TowerDefence
                 {
                     watch.Start();
                     //fire a bullet at the targeted enemy
-                    if (watch.ElapsedMilliseconds > 75)
+                    if (watch.ElapsedMilliseconds > 750)
                     {
                         bullet_ = new Bullet(new Vector2(position_.X + 25, position_.Y + 25), target_.position_, this);
                         if (target_.hp <= 0)
