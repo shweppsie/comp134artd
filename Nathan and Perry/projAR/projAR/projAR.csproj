@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C15D7B72-DED6-46CA-9B56-745E5906EAF1}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>projAR</RootNamespace>
+    <AssemblyName>projAR</AssemblyName>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ItemGroup>
+    <Compile Include="BitmapBuffer.cs" />
+    <Compile Include="Capture.cs" />
+    <Compile Include="Class1.cs" />
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GraphUtil.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ARTKPManagedWrapper, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="DirectShowLib-2005, Version=2.0.0.0, Culture=neutral, PublicKeyToken=67e7b740cdfc2d3f, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Xna.Framework, Version=2.0.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=x86" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Form1.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="data\image_320_240_8_marker_id_bch_nr0100.jpg" />
+    <Content Include="data\image_320_240_8_marker_id_bch_nr0100.raw.bmp" />
+    <Content Include="data\image_320_240_8_marker_id_simple_nr031.jpg" />
+    <Content Include="data\image_320_240_8_marker_id_simple_nr031.raw.bmp" />
+    <Content Include="data\image_320_240_8_marker_id_simple_nr321.png" />
+    <Content Include="data\markerboard_480-499.bmp" />
+    <Content Include="data\markerboard_480-499.jpg" />
+    <Content Include="data\webcam_test.bmp" />
+    <Content Include="libs\ARTKPManagedWrapper.dll" />
+    <Content Include="libs\ARToolKitPlus.dll" />
+    <Content Include="libs\DirectShowLib-2005.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="data\image_320_240_8_marker_id_bch_nr0100.raw" />
+    <None Include="data\image_320_240_8_marker_id_simple_nr031.raw" />
+    <None Include="data\image_320_240_8_marker_id_simple_nr321.raw" />
+    <None Include="data\LogitechPro4000.dat" />
+    <None Include="data\Logitech_Notebook_Pro.cal" />
+    <None Include="data\Logitech_Notebook_Pro.cal.wri" />
+    <None Include="data\markerboard_480-499.cfg" />
+    <None Include="data\markerboard_480-499.cfg.wri" />
+    <None Include="data\markerboard_480-499.raw" />
+    <None Include="data\no_distortion.cal" />
+    <None Include="data\no_distortion.cal.wri" />
+    <None Include="data\PGR_M12x0.5_2.5mm.cal" />
+  </ItemGroup>
+</Project>
