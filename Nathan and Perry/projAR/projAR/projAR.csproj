@@ -67,30 +67,74 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="data\image_320_240_8_marker_id_bch_nr0100.jpg" />
-    <Content Include="data\image_320_240_8_marker_id_bch_nr0100.raw.bmp" />
-    <Content Include="data\image_320_240_8_marker_id_simple_nr031.jpg" />
-    <Content Include="data\image_320_240_8_marker_id_simple_nr031.raw.bmp" />
-    <Content Include="data\image_320_240_8_marker_id_simple_nr321.png" />
-    <Content Include="data\markerboard_480-499.bmp" />
-    <Content Include="data\markerboard_480-499.jpg" />
-    <Content Include="data\webcam_test.bmp" />
-    <Content Include="libs\ARTKPManagedWrapper.dll" />
-    <Content Include="libs\ARToolKitPlus.dll" />
-    <Content Include="libs\DirectShowLib-2005.dll" />
+    <Content Include="ARTKPManagedWrapper.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ARToolKitPlus.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\image_320_240_8_marker_id_bch_nr0100.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\image_320_240_8_marker_id_bch_nr0100.raw.bmp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\image_320_240_8_marker_id_simple_nr031.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\image_320_240_8_marker_id_simple_nr031.raw.bmp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\image_320_240_8_marker_id_simple_nr321.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\markerboard_480-499.bmp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\markerboard_480-499.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\webcam_test.bmp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DirectShowLib-2005.dll" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\image_320_240_8_marker_id_bch_nr0100.raw" />
-    <None Include="data\image_320_240_8_marker_id_simple_nr031.raw" />
-    <None Include="data\image_320_240_8_marker_id_simple_nr321.raw" />
-    <None Include="data\LogitechPro4000.dat" />
-    <None Include="data\Logitech_Notebook_Pro.cal" />
-    <None Include="data\Logitech_Notebook_Pro.cal.wri" />
-    <None Include="data\markerboard_480-499.cfg" />
-    <None Include="data\markerboard_480-499.cfg.wri" />
-    <None Include="data\markerboard_480-499.raw" />
-    <None Include="data\no_distortion.cal" />
-    <None Include="data\no_distortion.cal.wri" />
-    <None Include="data\PGR_M12x0.5_2.5mm.cal" />
+    <None Include="data\image_320_240_8_marker_id_bch_nr0100.raw">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\image_320_240_8_marker_id_simple_nr031.raw">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\image_320_240_8_marker_id_simple_nr321.raw">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\LogitechPro4000.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\Logitech_Notebook_Pro.cal">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\Logitech_Notebook_Pro.cal.wri">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\markerboard_480-499.cfg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\markerboard_480-499.cfg.wri">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\markerboard_480-499.raw">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\no_distortion.cal">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\no_distortion.cal.wri">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="data\PGR_M12x0.5_2.5mm.cal">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

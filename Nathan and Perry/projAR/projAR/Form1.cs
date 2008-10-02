@@ -251,7 +251,7 @@ namespace projAR
                                 IntPtr markerInfos = ArManWrap.ARTKPGetDetectedMarker(tracker, i); //armi.id);
                                 float[] center = new float[2];
                                 float width = 50;
-                                float[] matrix = new float[12];
+                                float[] matrix = new float[16];
                                 float retTransMat = 0;
 
                                 MyMarkerInfo mmi = null;
@@ -259,20 +259,23 @@ namespace projAR
                                 {
                                     mmi = dicMarkerInfos[armi.id];
                                     //make sure the matrix i'm passing in is ordered correctly
-                                    retTransMat = ArManWrap.ARTKPGetTransMatCont(tracker, markerInfos, mmi.prevMatrix, center, width, matrix);
+                                    ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);//ARTKPGetTransMatCont(tracker, markerInfos, mmi.prevMatrix, center, width, matrix);
                                 }
                                 else
                                 {
                                     mmi = new MyMarkerInfo();
                                     dicMarkerInfos.Add(armi.id, mmi);
-                                    retTransMat = ArManWrap.ARTKPGetTransMat(tracker, markerInfos, center, width, matrix);
+                                    ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);//ARTKPGetTransMat(tracker, markerInfos, center, width, matrix);
                                 }
+
                                 Marshal.Release(markerInfos);
+                                
                                 mmi.found = true;
                                 mmi.notFoundCount = 0;
                                 mmi.markerInfo = armi;
                                 mmi.prevMatrix = matrix;
                                 Matrix m3d = convert(matrix);
+                                Console.WriteLine(m3d.Translation.ToString());
                                 mmi.transform = m3d;
                             }
                         }
@@ -374,22 +377,27 @@ namespace projAR
         //    }
         //}
 
-        public Matrix convert(float[] mat)
+        public Matrix convert(float[] modelViewMatrix)
         {
             Matrix m3d = new Matrix();
-            m3d.M11 = mat[0];
-            m3d.M12 = mat[1];
-            m3d.M13 = mat[2];
-            m3d.M14 = mat[3];
-            m3d.M21 = mat[4];
-            m3d.M22 = mat[5];
-            m3d.M23 = mat[6];
-            m3d.M24 = mat[7];
-            m3d.M31 = mat[8];
-            m3d.M32 = mat[9];
-            m3d.M33 = mat[10];
-            m3d.M34 = mat[11];
-            m3d.M44 = mat[15];
+            m3d.M11 = modelViewMatrix[0];
+            m3d.M12 = modelViewMatrix[1];
+            m3d.M13 = modelViewMatrix[2];
+            m3d.M14 = modelViewMatrix[3];
+            m3d.M21 = modelViewMatrix[4];
+            m3d.M22 = modelViewMatrix[5];
+            m3d.M23 = modelViewMatrix[6];
+            m3d.M24 = modelViewMatrix[7];
+            m3d.M31 = modelViewMatrix[8];
+            m3d.M32 = modelViewMatrix[9];
+            m3d.M33 = modelViewMatrix[10];
+            m3d.M34 = modelViewMatrix[11];
+            //m3d.OffsetX = modelViewMatrix[12];
+            //m3d.OffsetY = modelViewMatrix[13];
+            //m3d.OffsetZ = modelViewMatrix[14];
+            m3d.M44 = modelViewMatrix[15];
+
+            m3d.Translation = new Vector3(modelViewMatrix[12], modelViewMatrix[13], modelViewMatrix[14]);
             return m3d;
         }
 
