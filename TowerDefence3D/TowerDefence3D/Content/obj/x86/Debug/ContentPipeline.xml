@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<XnaContent xmlns:Pipeline="Microsoft.Xna.Framework.Content.Pipeline">
+  <Asset Type="Pipeline:BuildItemCollection">
+    <Item>
+      <Source>Models\SphereHighPoly.fbx</Source>
+      <Name>Models\SphereHighPoly</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\bin\x86\Debug\Content\Models\SphereHighPoly.xnb</Output>
+      <Time>2007-12-30T23:19:16+13:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\Models\SphereHighPoly%0.xml</Key>
+        <Value>2008-09-30T17:39:32.984375+13:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>Models\box.FBX</Source>
+      <Name>Models\box</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\bin\x86\Debug\Content\Models\box.xnb</Output>
+      <Time>2007-12-31T04:59:16+13:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\Models\box%0.xml</Key>
+        <Value>2008-09-30T17:39:33.234375+13:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>Models\plane.FBX</Source>
+      <Name>Models\plane</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\bin\x86\Debug\Content\Models\plane.xnb</Output>
+      <Time>2008-01-02T12:40:36+13:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\Models\plane%0.xml</Key>
+        <Value>2008-09-30T17:39:33.28125+13:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>Models\ball.FBX</Source>
+      <Name>Models\ball</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <Options>None</Options>
+      <Output>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\bin\x86\Debug\Content\Models\ball.xnb</Output>
+      <Time>2008-01-02T16:37:06+13:00</Time>
+      <Dependency>
+        <Key>obj\x86\Debug\Models\ball%0.xml</Key>
+        <Value>2008-09-30T17:39:33.359375+13:00</Value>
+      </Dependency>
+    </Item>
+    <Item>
+      <Source>Textured_Lit.fx</Source>
+      <Name>Textured_Lit</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+      <Options>None</Options>
+      <Output>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\bin\x86\Debug\Content\Textured_Lit.xnb</Output>
+      <Time>2008-01-02T23:17:36+13:00</Time>
+    </Item>
+    <Item>
+      <Source>Models\crate.dds</Source>
+      <Name>Models\crate</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\bin\x86\Debug\Content\Models\crate.xnb</Output>
+      <Time>2008-01-02T15:28:44+13:00</Time>
+    </Item>
+    <Item>
+      <Source>Models\whiteTex.bmp</Source>
+      <Name>Models\whiteTex</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <Options>None</Options>
+      <Output>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\bin\x86\Debug\Content\Models\whiteTex.xnb</Output>
+      <Time>2008-01-02T17:19:32+13:00</Time>
+    </Item>
+    <Item>
+      <Source>CourierNew.spritefont</Source>
+      <Name>CourierNew</Name>
+      <Importer>FontDescriptionImporter</Importer>
+      <Processor>FontDescriptionProcessor</Processor>
+      <Options>None</Options>
+      <Output>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\bin\x86\Debug\Content\CourierNew.xnb</Output>
+      <Time>2008-01-02T23:15:42+13:00</Time>
+    </Item>
+    <Item>
+      <Source>Models\SphereHighPoly.fbx</Source>
+      <Importer>FbxImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\Models\SphereHighPoly%0.xml</Output>
+      <Time>2007-12-30T23:19:16+13:00</Time>
+    </Item>
+    <Item>
+      <Source>Models\box.FBX</Source>
+      <Importer>FbxImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\Models\box%0.xml</Output>
+      <Time>2007-12-31T04:59:16+13:00</Time>
+    </Item>
+    <Item>
+      <Source>Models\plane.FBX</Source>
+      <Importer>FbxImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\Models\plane%0.xml</Output>
+      <Time>2008-01-02T12:40:36+13:00</Time>
+    </Item>
+    <Item>
+      <Source>Models\ball.FBX</Source>
+      <Importer>FbxImporter</Importer>
+      <Options>IntermediateFile, DontCacheImportedData</Options>
+      <Output>obj\x86\Debug\Models\ball%0.xml</Output>
+      <Time>2008-01-02T16:37:06+13:00</Time>
+    </Item>
+    <BuildSuccessful>true</BuildSuccessful>
+    <Settings>
+      <TargetPlatform>Windows</TargetPlatform>
+      <BuildConfiguration>Debug</BuildConfiguration>
+      <RootDirectory>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\Content\</RootDirectory>
+      <LoggerRootDirectory>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\</LoggerRootDirectory>
+      <IntermediateDirectory>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\Content\obj\x86\Debug\</IntermediateDirectory>
+      <OutputDirectory>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\bin\x86\Debug\Content\</OutputDirectory>
+    </Settings>
+    <Assemblies>
+      <Assembly>
+        <Key>C:\Program Files\Microsoft XNA\XNA Game Studio\v2.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.XImporter.dll</Key>
+        <Value>2007-11-28T14:08:00+13:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\Program Files\Microsoft XNA\XNA Game Studio\v2.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.TextureImporter.dll</Key>
+        <Value>2007-11-28T14:08:42+13:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\Program Files\Microsoft XNA\XNA Game Studio\v2.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.FBXImporter.dll</Key>
+        <Value>2007-11-28T14:08:30+13:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\Program Files\Microsoft XNA\XNA Game Studio\v2.0\References\Windows\x86\Microsoft.Xna.Framework.Content.Pipeline.EffectImporter.dll</Key>
+        <Value>2007-11-28T14:07:44+13:00</Value>
+      </Assembly>
+      <Assembly>
+        <Key>C:\WINDOWS\assembly\GAC_32\Microsoft.Xna.Framework.Content.Pipeline\2.0.0.0__6d5c3888ef60e27d\Microsoft.Xna.Framework.Content.Pipeline.dll</Key>
+        <Value>2008-09-12T21:48:41.46875+12:00</Value>
+      </Assembly>
+    </Assemblies>
+  </Asset>
+</XnaContent>

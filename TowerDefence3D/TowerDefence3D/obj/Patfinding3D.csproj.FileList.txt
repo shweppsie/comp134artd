@@ -1,0 +1,15 @@
+bin\x86\Debug\Content\Models\SphereHighPoly.xnb
+bin\x86\Debug\Content\Models\box.xnb
+bin\x86\Debug\Content\Models\plane.xnb
+bin\x86\Debug\Content\Models\ball.xnb
+bin\x86\Debug\Content\Textured_Lit.xnb
+bin\x86\Debug\Content\Models\crate.xnb
+bin\x86\Debug\Content\Models\whiteTex.xnb
+bin\x86\Debug\Content\CourierNew.xnb
+bin\x86\Debug\Pathfinding3D.exe
+bin\x86\Debug\Pathfinding3D.pdb
+obj\x86\Debug\ResolveAssemblyReference.cache
+obj\x86\Debug\Microsoft.Xna.Framework.RuntimeProfile.txt
+obj\x86\Debug\Pathfinding3D.obj.x86.Debug.Microsoft.Xna.Framework.RuntimeProfile.txt
+obj\x86\Debug\Pathfinding3D.exe
+obj\x86\Debug\Pathfinding3D.pdb

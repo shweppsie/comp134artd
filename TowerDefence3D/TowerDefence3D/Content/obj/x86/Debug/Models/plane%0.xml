@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<XnaContent xmlns:Graphics="Microsoft.Xna.Framework.Content.Pipeline.Graphics" xmlns:Framework="Microsoft.Xna.Framework">
+  <Asset Type="Graphics:MeshContent">
+    <Name>Plane01</Name>
+    <Identity>
+      <SourceFilename>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\Content\Models\plane.FBX</SourceFilename>
+      <SourceTool>FbxImporter</SourceTool>
+    </Identity>
+    <Transform>2.54 0 0 0 0 7.195183E-16 -2.54 0 0 2.54 7.195183E-16 0 0 0 0 1</Transform>
+    <Positions>-0.5 -0.5 0 0.5 -0.5 0 -0.5 0.5 0 0.5 0.5 0</Positions>
+    <Geometry>
+      <Batch>
+        <Indices>2 1 0 0 3 2</Indices>
+        <Vertices>
+          <PositionIndices>2 0 1 3</PositionIndices>
+          <Channels>
+            <VertexChannel Name="Normal0" ElementType="Framework:Vector3">0 0 1 0 0 1 0 0 1 0 0 1</VertexChannel>
+            <VertexChannel Name="TextureCoordinate0" ElementType="Framework:Vector2">0 0 0 1 1 1 1 0</VertexChannel>
+          </Channels>
+        </Vertices>
+      </Batch>
+    </Geometry>
+  </Asset>
+</XnaContent>
