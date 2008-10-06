@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 
 using ARTKPManagedWrapper;
 using forms = System.Windows.Forms;
+using System.Windows.Forms;
 
 namespace projAR
 {
@@ -33,6 +34,8 @@ namespace projAR
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
+            this.IsFixedTimeStep = false;
+            graphics.SynchronizeWithVerticalRetrace = false;
             Content.RootDirectory = "Content";
         }
 
@@ -50,8 +53,12 @@ namespace projAR
             world = Matrix.Identity;
 
             base.Initialize();
-
-            ar = new AR(new forms.Panel(), 640, 480, 4);
+            try
+            {
+                ar = new AR(new forms.Panel());
+                //ar = new AR(Control.FromHandle(Window.Handle));
+            }
+            catch (Exception e) { MessageBox.Show(e.Message); }
         }
 
         /// <summary>
@@ -94,11 +101,12 @@ namespace projAR
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            //Console.WriteLine("Updating");
             // Allows the game to exit
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                 this.Exit();
 
-            ar.Track(out projection);
+            ar.Track(out projection, out view);
 
             base.Update(gameTime);
         }
@@ -109,6 +117,7 @@ namespace projAR
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            //Console.WriteLine("Drawing");
             graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
             //spriteBatch.Draw(i, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
@@ -116,10 +125,10 @@ namespace projAR
             //projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60.0f), 1.33333f, 1.0f, 1000.0f);
             foreach (MyMarkerInfo mmi in ar.dicMarkerInfos.Values)
             {
-                Console.WriteLine(mmi.transform);
+                //Console.WriteLine(mmi.transform);
                 //myMarkerInfo.transform
                 e.World = Matrix.CreateScale(4.0f) * mmi.transform;
-                e.View = Matrix.Identity;// view;
+                e.View = view; //Matrix.Identity;// view;
                 e.DiffuseColor = Color.Purple.ToVector3();
                 e.Texture = t;
                 e.TextureEnabled = false;
@@ -131,8 +140,6 @@ namespace projAR
                     m.Draw();
                 }
             }
-
-            
 
             base.Draw(gameTime);
         }

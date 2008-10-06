@@ -9,6 +9,8 @@ using ARTKPManagedWrapper;
 using DirectShowLib;
 using SnapShot;
 using System.Runtime.InteropServices;
+using System.IO;
+using System.Reflection;
 
 namespace projAR
 {
@@ -24,14 +26,19 @@ namespace projAR
         public Dictionary<int, MyMarkerInfo> dicMarkerInfos;
 
         //various variables
-        int _width;
-        int _height;
-        int _bytesPerPixel;
+        const int _width = 640;
+        const int _height = 480;
+        const int _bytesPerPixel = 4;
         Guid _sampleGrabberSubType = MediaSubType.ARGB32;
         ArManWrap.PIXEL_FORMAT _arPixelFormat = ArManWrap.PIXEL_FORMAT.PIXEL_FORMAT_ABGR;
-
+        string arDir;
+        
         //bool for tracking loop and camera update
         private bool cameraUpdated = false;
+
+        //used for flipping the image
+        byte[] imageBytes = new byte[_width * _height * _bytesPerPixel];
+        byte[] flipY = new byte[_width * _height * _bytesPerPixel];
 
         /// <summary>
         /// Starts Camera and Initializes AR Variables
@@ -40,12 +47,9 @@ namespace projAR
         /// <param name="width">width of webcam bitmap</param>
         /// <param name="height">height of webcam bitmap</param>
         /// <param name="bytesPerPixel">bytes Per Pixel</param>
-        public AR(Control control, int width, int height, int bytesPerPixel)
+        public AR(Control control)
         {
-            //set class globals
-            _width = width;
-            _height = height;
-            _bytesPerPixel = bytesPerPixel;
+            arDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetModules()[0].FullyQualifiedName);
 
             //set to the first webcam device
             int deviceNum = 0;
@@ -92,14 +96,14 @@ namespace projAR
 
             IntPtr ipDesc = ArManWrap.ARTKPGetDescription(tracker);
             string desc = Marshal.PtrToStringAnsi(ipDesc);
-            System.Console.WriteLine(desc);
+            //Console.WriteLine(desc);
             int pixelFormat = ArManWrap.ARTKPSetPixelFormat(tracker, (int)_arPixelFormat);
 
             //camera clibration datafile
-            string cameraCalibrationPath = "data/no_distortion.cal";
+            string cameraCalibrationPath = arDir + "/data/no_distortion.cal";
 
             //marker to look for
-            string multiPath = "data/markerboard_480-499.cfg";
+            string multiPath = arDir + "/data/markerboard_480-499.cfg";
 
             int retInit = ArManWrap.ARTKPInitMulti(tracker, cameraCalibrationPath, multiPath, 1.0f, 2000.0f);
             if (retInit != 0)
@@ -130,14 +134,15 @@ namespace projAR
             return tracker;
         }
 
-        public void Track(out Matrix finalprojMatrix)
+        public void Track(out Matrix finalprojMatrix, out Matrix finalmodelMatrix)
         {
             float[] modelViewMatrix = new float[16];
-            float[] projMatrix = new float[16];
+            float[] projmatrix = new float[16];
 
             dicMarkerInfos.Clear();
 
             finalprojMatrix = new Matrix();
+            finalmodelMatrix = new Matrix();
 
             try
             {
@@ -149,17 +154,17 @@ namespace projAR
                 }
 
                 //get number of markers and matrices
-                int numMarkers = ArManWrap.ARTKPCalcMulti(tracker, flipimage());
+                byte[] fi = flipimage();
+                if (fi == null)
+                    return;
+                int numMarkers = ArManWrap.ARTKPCalcMulti(tracker, fi);
                 ArManWrap.ARTKPGetModelViewMatrix(tracker, modelViewMatrix);
-                ArManWrap.ARTKPGetProjectionMatrix(tracker, projMatrix);
+                ArManWrap.ARTKPGetProjectionMatrix(tracker, projmatrix);
 
                 //set up matrices
-                Matrix wpfModelViewMatrix = ArManWrap.GetXNAMatrixFromOpenGl(modelViewMatrix);
-                float[] matrix = projMatrix;
-                int a = 0;
-                finalprojMatrix = new Matrix(matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++],
-                    matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++],
-                    matrix[a++], matrix[a++], matrix[a++], -matrix[a++], matrix[a++]);
+                //Matrix wpfModelViewMatrix = ArManWrap.GetXNAMatrixFromOpenGl(modelViewMatrix);
+                finalprojMatrix = convert(projmatrix);
+                finalmodelMatrix = convert(modelViewMatrix);
                 //ArManWrap.GetXNAMatrixFromOpenGl(projMatrix);
 
                 //markers to check
@@ -181,11 +186,11 @@ namespace projAR
         /// <returns>bytes of flipped image</returns>
         private byte[] flipimage()
         {
-            byte[] imageBytes = new byte[_width * _height * _bytesPerPixel];
-            byte[] flipY = new byte[imageBytes.Length];
-
             //grab image from camera
             IntPtr ipImage = cam.Click();
+            if (ipImage == IntPtr.Zero)
+                return null;
+
             Marshal.Copy(ipImage, imageBytes, 0, imageBytes.Length);
             Marshal.FreeCoTaskMem(ipImage);
 
@@ -220,7 +225,7 @@ namespace projAR
             for (int i = 0; i < numMarkers; i++)
             {
                 ArManWrap.ARMarkerInfo armi = ArManWrap.ARTKPGetDetectedMarkerStruct(tracker, i);
-                IntPtr markerInfos = ArManWrap.ARTKPGetDetectedMarker(tracker, i); //armi.id);
+                IntPtr markerInfos = ArManWrap.ARTKPGetDetectedMarker(tracker, i);
                 float[] center = new float[2];
                 float width = 50;
                 //float[] matrix = new float[12];
@@ -238,21 +243,29 @@ namespace projAR
                 {
                     mmi = new MyMarkerInfo();
                     dicMarkerInfos.Add(armi.id, mmi);
-                    //retTransMat = ArManWrap.ARTKPGetTransMat(tracker, markerInfos, center, width, matrix);
-                    ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);
+                    retTransMat = ArManWrap.ARTKPGetTransMat(tracker, markerInfos, center, width, matrix);
+                    //ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);
                 }
                 Marshal.Release(markerInfos);
                 mmi.found = true;
                 mmi.notFoundCount = 0;
                 mmi.markerInfo = armi;
                 mmi.prevMatrix = matrix;
-                //mmi.transform = ArManWrap.GetXNAMatrixFromOpenGl12(matrix);
-                int a = 0;
-                Matrix m = new Matrix(matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++], 
-                    matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++], 
-                    matrix[a++], matrix[a++], matrix[a++], -matrix[a++], matrix[a++]);
-                mmi.transform = m;
+                Matrix tmp = ArManWrap.GetXNAMatrixFromOpenGl12(matrix);
+                tmp.M43 = -tmp.M43;
+                mmi.transform = tmp;
+                //TODO
+                //Matrix m = convert(matrix);
+                //mmi.transform = m;
             }
+        }
+
+        Matrix convert(float[] matrix)
+        {
+            int a = 0;
+            return new Matrix(matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++],
+                    matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++],
+                    matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++]);
         }
     }
 }
