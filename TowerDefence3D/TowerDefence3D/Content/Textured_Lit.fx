@@ -8,6 +8,7 @@ shared float3 lightPosition;
 shared float4 ambientLightColor;
 shared float4 diffuseLightColor;
 shared float4 specularLightColor;
+float4 emmissive;
 
 //material properties
 shared float specularPower;
@@ -73,12 +74,11 @@ float4 DiffuseAndPhongPS(PixelShaderInputPerPixelDiffuse input) : COLOR
                        pow(saturate(dot(reflectionVector, directionToCamera)), 
                            specularPower);
           
-     float4 color = specular + diffuse + ambientLightColor;
+     float4 color = ambientLightColor;
      color.a = 1.0;
      
-     color += tex2D(TextureSampler, input.TextureCoordinate);
-     
-     return color * (input.WorldPosition.z / 10 + 0.2f);
+     color += tex2D(TextureSampler, input.TextureCoordinate);     
+     return color* emmissive*1.0f + specular + diffuse;
 }
 
 technique Pixel_Diffuse_Pixel_Phong

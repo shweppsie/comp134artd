@@ -23,7 +23,7 @@ namespace TowerDefence3D
         SpriteFont CourierNew;
 
         //Width of "playfield"
-        private const int PlayfieldWidth = 24;
+        private const int PlayfieldWidth = 10;
 
         //Width of one playfield tile
         private const float TileWidth = 10.0f;
@@ -182,11 +182,11 @@ namespace TowerDefence3D
             //I set effect parameters, that will not change here
             effect.Parameters["lightPosition"].SetValue(new Vector3(80, 80, 80));
             effect.Parameters["ambientLightColor"].SetValue(Color.Black.ToVector4());
-            effect.Parameters["diffuseLightColor"].SetValue(Color.DarkBlue.ToVector4());
-            effect.Parameters["specularLightColor"].SetValue(Color.DarkViolet.ToVector4());
+            effect.Parameters["diffuseLightColor"].SetValue(Color.White.ToVector4() * 0.2f );
+            effect.Parameters["specularLightColor"].SetValue(Color.White.ToVector4()*0.2f);
 
-            effect.Parameters["specularPower"].SetValue(11.73f);
-            effect.Parameters["specularIntensity"].SetValue(2.35f);
+            effect.Parameters["specularPower"].SetValue(32);
+            effect.Parameters["specularIntensity"].SetValue(1.340f);
 
         }
 
@@ -334,6 +334,7 @@ namespace TowerDefence3D
             return nearPoint - (rayDirection * distance);
         }
 
+        float start = 0;
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -354,9 +355,12 @@ namespace TowerDefence3D
             //Draw ground plane
             effect.Parameters["xTexture0"].SetValue(Texture_Tower);
             effect.Parameters["world"].SetValue(PlaneMatrix);
+
+            effect.Parameters["emmissive"].SetValue(Color.White.ToVector4()*0.4f);
             DrawSampleMesh(Model_Plane);
 
             //Draw walls
+            effect.Parameters["emmissive"].SetValue(Color.White.ToVector4() * 0.8f);
             effect.Parameters["xTexture0"].SetValue(Texture_Tower);
             DrawBoxArray(Model_Tower);
 
@@ -365,6 +369,21 @@ namespace TowerDefence3D
             {
                 effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
                 effect.Parameters["world"].SetValue(CharacterMatrix);
+
+                if (Microsoft.Xna.Framework.Input.Keyboard.GetState().IsKeyDown(Keys.Down))
+                {
+                    start = gameTime.ElapsedRealTime.Seconds;
+                }
+
+                Vector3 green = Color.Green.ToVector3();
+                Vector3 red = Color.Red.ToVector3();
+                Vector3 color = Vector3.Lerp(green, red, start/150.0f);
+                color.Normalize();
+
+                if (start > 150)
+                    start = 0;
+                start+=0.1f;
+                effect.Parameters["emmissive"].SetValue(new Color(color).ToVector4());
                 DrawSampleMesh(Model_Sphere);
             }
 
@@ -471,7 +490,6 @@ namespace TowerDefence3D
             //at this point' we're ready to begin drawing
             //To start using any effect, you must call Effect.Begin
             //to start using the current technique (set in LoadGraphicsContent)
-
 
             effect.Begin(SaveStateMode.None);
 
