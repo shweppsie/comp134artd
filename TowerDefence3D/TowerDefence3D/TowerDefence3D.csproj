@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bullet.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="PathfindingSource\Enemy.cs" />
     <Compile Include="PathfindingSource\PathFinder.cs" />

@@ -3,7 +3,7 @@
   <Asset Type="Graphics:MeshContent">
     <Name>Plane01</Name>
     <Identity>
-      <SourceFilename>D:\Stuff\COMP Stuff\pathFinding3D\pathFinding3D\Content\Models\plane.FBX</SourceFilename>
+      <SourceFilename>C:\Documents and Settings\Daniel\My Documents\Visual Studio 2005\Projects\comp134artd\TowerDefence3D\TowerDefence3D\Content\Models\plane.FBX</SourceFilename>
       <SourceTool>FbxImporter</SourceTool>
     </Identity>
     <Transform>2.54 0 0 0 0 7.195183E-16 -2.54 0 0 2.54 7.195183E-16 0 0 0 0 1</Transform>

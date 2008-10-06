@@ -122,7 +122,7 @@ namespace TowerDefence3D
                 for (int x = 0; x < PlayfieldWidth; x++)
                 {
                     Towers[x, y] = 1;
-                    Towerz[x, y] = new Tower();
+                    Towerz[x, y] = new Tower(Vector3.Zero);
                     TowerMatrixs[x, y] = Matrix.CreateTranslation(new Vector3(x * TileWidth + 5.0f, y * TileWidth + 5.0f, 0.0f));
                 }
             }
@@ -142,7 +142,8 @@ namespace TowerDefence3D
 
             Enemy.Initalize(24, (int)TileWidth);
 
-            Character = new Enemy(new Vector2(0, 0));
+            enemies[0] = new Enemy(new Vector2(0, 0));
+            //Character = new Enemy(new Vector2(0, 0));
 
             base.Initialize();
         }
@@ -245,18 +246,19 @@ namespace TowerDefence3D
                     if (Click.X > 0 && Click.Y > 0)
                     {
 
-                        Point Start = new Point(((int)(Character.PositionCurrent.X / (int)TileWidth)), ((int)(Character.PositionCurrent.Y / (int)TileWidth)));
+                        //Point Start = new Point(((int)(Character.PositionCurrent.X / (int)TileWidth)), ((int)(Character.PositionCurrent.Y / (int)TileWidth)));
+                        Point Start = new Point(((int)(enemies[0].PositionCurrent.X / (int)TileWidth)), ((int)(enemies[0].PositionCurrent.Y / (int)TileWidth)));
                         Point End = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
 
                         if (End.X >= 0 && End.Y >= 0 && End.X < PlayfieldWidth && End.Y < PlayfieldWidth)
                         {
                             if (Start == End)
-                                Character.LinearMove(Character.PositionCurrent, new Vector2(Click.X, Click.Y));
+                                enemies[0].LinearMove(enemies[0].PositionCurrent, new Vector2(Click.X, Click.Y));
                             else
                             {
                                 foundPath = myPathFinder.FindPath(Start, End);
                                 if (foundPath != null)
-                                    Character.PathMove(ref foundPath, Character.PositionCurrent, new Vector2(Click.X, Click.Y));
+                                    enemies[0].PathMove(ref foundPath, enemies[0].PositionCurrent, new Vector2(Click.X, Click.Y));
                             }
                         }
                     }
@@ -281,14 +283,21 @@ namespace TowerDefence3D
                     else
                     {
                         Towerz[point.X, point.Y].dead = 0;
+                        Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
                         Towers[point.X, point.Y] = 0;
                     }
                 }
             }
 
             //Update character and it's mesh position
-            Character.Update(elapsedTime);
-            CharacterMatrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(Character.PositionCurrent.X, Character.PositionCurrent.Y, 2.5f);
+            enemies[0].Update(elapsedTime);
+            CharacterMatrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(enemies[0].PositionCurrent.X, enemies[0].PositionCurrent.Y, 2.5f);
+
+            //Run the tower methods
+            foreach (Tower t in Towerz)
+            {
+                t.FindTarget(enemies);
+            }
 
             base.Update(gameTime);
         }
