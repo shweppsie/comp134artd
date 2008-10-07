@@ -18,7 +18,7 @@ namespace TowerDefence3D
         public Enemy target;
         public float range;
         public Vector3 position;
-        Bullet bullet;
+        public Bullet bullet;
         Stopwatch watch = new Stopwatch();
 
         public Tower(Vector3 Postion)
@@ -67,6 +67,9 @@ namespace TowerDefence3D
                         if (watch.ElapsedMilliseconds > 750)
                         {
                             //shoot
+                            Vector3 middle = new Vector3(position.X * 10 + 5, position.Y * 10 + 5, 0);
+                            bullet = new Bullet(middle, new Vector3(target.PositionCurrent,0), this);
+                            watch.Reset();
                         }
                     }
                 }

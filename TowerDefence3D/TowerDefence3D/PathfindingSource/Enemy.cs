@@ -22,7 +22,7 @@ namespace TowerDefence3D
 
         private MovingType movingStatus = MovingType.None;
 
-        private static float moveSpeed = 50.0f;
+        private static float moveSpeed = 20.0f;
         private float time = 0.0f;
         private float totalTime = 0.0f;
 

@@ -297,6 +297,11 @@ namespace TowerDefence3D
             foreach (Tower t in Towerz)
             {
                 t.FindTarget(enemies);
+                t.Shoot();
+                if (t.bullet != null)
+                {
+                    t.bullet.Move();
+                }
             }
 
             base.Update(gameTime);
@@ -386,14 +391,27 @@ namespace TowerDefence3D
 
                 Vector3 green = Color.Green.ToVector3();
                 Vector3 red = Color.Red.ToVector3();
-                Vector3 color = Vector3.Lerp(green, red, start/150.0f);
-                color.Normalize();
+                Vector3 color = Vector3.Lerp(green, red, 1 - enemies[0].hp/5);
+                //color.Normalize();
 
                 if (start > 150)
                     start = 0;
                 start+=0.1f;
                 effect.Parameters["emmissive"].SetValue(new Color(color).ToVector4());
                 DrawSampleMesh(Model_Sphere);
+            }
+
+            //Draw bullets
+            foreach (Tower t in Towerz)
+            {
+                if (t.bullet != null)
+                {
+                    effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
+                    effect.Parameters["world"].SetValue(t.bullet.matrix);
+                    effect.Parameters["emmissive"].SetValue(Color.Red.ToVector4());
+
+                    DrawSampleMesh(Model_Sphere);
+                }
             }
 
             spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
