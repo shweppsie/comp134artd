@@ -59,8 +59,11 @@ namespace TowerDefence3D
         private static Point[] LinearMoves;
 
         //Stuff for the enemy of td
+        public const float MAX_HP = 10;
         public int hp;
         public bool kill;
+
+        public Matrix matrix;
         #endregion
 
         #region CONSTRUCTOR
@@ -71,7 +74,9 @@ namespace TowerDefence3D
             curveX = new Curve();
             curveY = new Curve();
 
-            hp = 5;
+            matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X * 10, positionCurrent.Y * 10, 4.0f);
+
+            hp = 10;
             kill = false;
         }
         #endregion
@@ -254,6 +259,7 @@ namespace TowerDefence3D
                             positionCurrent = positionDestination;
                         }
                     }
+                    matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X * 10, positionCurrent.Y * 10, 4.0f);
                     break;
                 case MovingType.PathSmooth:
                     {
@@ -274,6 +280,7 @@ namespace TowerDefence3D
                             StopMoving();
                         }
                     }
+                    matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X, positionCurrent.Y, 4.0f);
                     break;
             }
         }

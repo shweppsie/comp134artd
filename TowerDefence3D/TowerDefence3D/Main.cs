@@ -63,8 +63,9 @@ namespace TowerDefence3D
         //Character model world matrix
         private Matrix CharacterMatrix;
 
-        //Is we adding or removing boxes?
+        //Is we adding or removing boxes and enemies??
         private bool Tower_Add = false;
+        private bool Enemy_Add = false;
 
         //Effect
         private Effect effect;
@@ -79,7 +80,6 @@ namespace TowerDefence3D
         PathFinder myPathFinder;
         //List of found nodes:
         List<PathReturnNode> foundPath;
-        Enemy Character;
 
         bool CanMove = false;
 
@@ -220,6 +220,11 @@ namespace TowerDefence3D
                 Tower_Add = !Tower_Add;
             }
 
+            if (IsKeyPush(Keys.E))
+            {
+                Enemy_Add = !Enemy_Add;
+            }
+
             if (IsKeyPush(Keys.O))
             {
                 CanMove = !CanMove;
@@ -247,18 +252,24 @@ namespace TowerDefence3D
                     {
 
                         //Point Start = new Point(((int)(Character.PositionCurrent.X / (int)TileWidth)), ((int)(Character.PositionCurrent.Y / (int)TileWidth)));
-                        Point Start = new Point(((int)(enemies[0].PositionCurrent.X / (int)TileWidth)), ((int)(enemies[0].PositionCurrent.Y / (int)TileWidth)));
-                        Point End = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
-
-                        if (End.X >= 0 && End.Y >= 0 && End.X < PlayfieldWidth && End.Y < PlayfieldWidth)
+                        foreach (Enemy e in enemies)
                         {
-                            if (Start == End)
-                                enemies[0].LinearMove(enemies[0].PositionCurrent, new Vector2(Click.X, Click.Y));
-                            else
+                            if (e != null)
                             {
-                                foundPath = myPathFinder.FindPath(Start, End);
-                                if (foundPath != null)
-                                    enemies[0].PathMove(ref foundPath, enemies[0].PositionCurrent, new Vector2(Click.X, Click.Y));
+                                Point Start = new Point(((int)(e.PositionCurrent.X /*/ (int)TileWidth*/)), ((int)(e.PositionCurrent.Y/* / (int)TileWidth*/)));
+                                Point End = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
+
+                                if (End.X >= 0 && End.Y >= 0 && End.X < PlayfieldWidth && End.Y < PlayfieldWidth)
+                                {
+                                    if (Start == End)
+                                        e.LinearMove(e.PositionCurrent, new Vector2(Click.X, Click.Y));
+                                    else
+                                    {
+                                        List<PathReturnNode> foundPath1 = myPathFinder.FindPath(Start, End);
+                                        if (foundPath1 != null)
+                                            e.PathMove(ref foundPath1, e.PositionCurrent, new Vector2(Click.X, Click.Y));
+                                    }
+                                }
                             }
                         }
                     }
@@ -289,9 +300,37 @@ namespace TowerDefence3D
                 }
             }
 
+            //Add enemy
+            if (MSState_Current.LeftButton == ButtonState.Pressed)
+            {
+                Click = GetCollision();
+                Point point = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
+
+                if (point.X >= 0 && point.Y >= 0 && point.X < PlayfieldWidth && point.Y < PlayfieldWidth)
+                {
+                    if (Enemy_Add)
+                    {
+                        for (int i = 0; i < enemies.Length; i++)
+                        {
+                            if (enemies[i] == null)
+                            {
+                                enemies[i] = new Enemy(new Vector2(point.X, point.Y));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             //Update character and it's mesh position
-            enemies[0].Update(elapsedTime);
-            CharacterMatrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(enemies[0].PositionCurrent.X, enemies[0].PositionCurrent.Y, 2.5f);
+            foreach (Enemy e in enemies)
+            {
+                if (e != null)
+                {
+                    e.Update(elapsedTime);
+                }
+            }
+            //CharacterMatrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(enemies[0].PositionCurrent.X, enemies[0].PositionCurrent.Y, 2.5f);
 
             //Run the tower methods
             foreach (Tower t in Towerz)
@@ -379,26 +418,29 @@ namespace TowerDefence3D
             DrawBoxArray(Model_Tower);
 
             //Draw character
-            if (CharacterMatrix != null)
+            foreach (Enemy e in enemies)
             {
-                effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
-                effect.Parameters["world"].SetValue(CharacterMatrix);
-
-                if (Microsoft.Xna.Framework.Input.Keyboard.GetState().IsKeyDown(Keys.Down))
+                if (e != null)
                 {
-                    start = gameTime.ElapsedRealTime.Seconds;
+                    effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
+                    effect.Parameters["world"].SetValue(e.matrix);
+
+                    if (Microsoft.Xna.Framework.Input.Keyboard.GetState().IsKeyDown(Keys.Down))
+                    {
+                        start = gameTime.ElapsedRealTime.Seconds;
+                    }
+
+                    Vector3 green = Color.Green.ToVector3();
+                    Vector3 red = Color.Red.ToVector3();
+                    Vector3 color = Vector3.Lerp(green, red, 1.0f - e.hp / Enemy.MAX_HP);
+                    color.Normalize();
+
+                    if (start > 150)
+                        start = 0;
+                    start += 0.1f;
+                    effect.Parameters["emmissive"].SetValue(new Color(color).ToVector4());
+                    DrawSampleMesh(Model_Sphere);
                 }
-
-                Vector3 green = Color.Green.ToVector3();
-                Vector3 red = Color.Red.ToVector3();
-                Vector3 color = Vector3.Lerp(green, red, 1 - enemies[0].hp/5);
-                //color.Normalize();
-
-                if (start > 150)
-                    start = 0;
-                start+=0.1f;
-                effect.Parameters["emmissive"].SetValue(new Color(color).ToVector4());
-                DrawSampleMesh(Model_Sphere);
             }
 
             //Draw bullets

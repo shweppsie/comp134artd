@@ -19,6 +19,7 @@ namespace TowerDefence3D
         public Vector3 velocity;
         public Tower origin;
         public Matrix matrix;
+        public const float speed = 50;
         private int i;
 
         public Bullet(Vector3 startPosition, Vector3 Destination, Tower tower)
@@ -26,7 +27,7 @@ namespace TowerDefence3D
             origin = tower;
             position = startPosition;
             destination = Destination;
-            velocity = (destination - position) / 750;
+            velocity = (destination - position) / speed;
             matrix = Matrix.CreateScale(1) * Matrix.CreateTranslation(position.X, position.Y, 4.0f);
             i = 0;
         }
@@ -36,7 +37,7 @@ namespace TowerDefence3D
             position += velocity;//(destination - position) / 400;
             matrix = Matrix.CreateScale(1) * Matrix.CreateTranslation(position.X, position.Y, 4.0f);
             i++;
-            if (i == 750)
+            if (i == speed)
             {
                 origin.bullet = null;
                 if (origin.target != null)
