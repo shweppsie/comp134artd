@@ -113,7 +113,6 @@
     </NestedContentProject>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
     <None Include="data\image_320_240_8_marker_id_bch_nr0100.raw">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
