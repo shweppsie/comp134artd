@@ -23,7 +23,7 @@ namespace TowerDefence3D
         SpriteFont CourierNew;
 
         //Width of "playfield"
-        private const int PlayfieldWidth = 10;
+        private const int PlayfieldWidth = 12;
 
         //Width of one playfield tile
         private const float TileWidth = 10.0f;
@@ -142,7 +142,7 @@ namespace TowerDefence3D
 
             Enemy.Initalize(24, (int)TileWidth);
 
-            enemies[0] = new Enemy(new Vector2(0, 0));
+            enemies[0] = new Enemy((new Vector2(0, 5)) * TileWidth );
             //Character = new Enemy(new Vector2(0, 0));
 
             base.Initialize();
@@ -256,7 +256,7 @@ namespace TowerDefence3D
                         {
                             if (e != null)
                             {
-                                Point Start = new Point(((int)(e.PositionCurrent.X /*/ (int)TileWidth*/)), ((int)(e.PositionCurrent.Y/* / (int)TileWidth*/)));
+                                Point Start = new Point(((int)(e.PositionCurrent.X / (int)TileWidth)), ((int)(e.PositionCurrent.Y / (int)TileWidth)));
                                 Point End = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
 
                                 if (End.X >= 0 && End.Y >= 0 && End.X < PlayfieldWidth && End.Y < PlayfieldWidth)
@@ -314,7 +314,7 @@ namespace TowerDefence3D
                         {
                             if (enemies[i] == null)
                             {
-                                enemies[i] = new Enemy(new Vector2(point.X, point.Y));
+                                enemies[i] = new Enemy(new Vector2(point.X, point.Y) * 10);
                                 break;
                             }
                         }
