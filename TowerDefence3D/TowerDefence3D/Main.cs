@@ -116,7 +116,7 @@ namespace TowerDefence3D
             enemies = new Enemy[20];
 
             spawnPoint = new Point((int)(PlayfieldWidth / 2), 0);
-            endPoint = new Point((int)(PlayfieldWidth / 2), PlayfieldWidth);
+            endPoint = new Point((int)(PlayfieldWidth / 2), PlayfieldWidth - 1);
             respawnTime = new Stopwatch();
             respawnTime.Start();
             
@@ -353,7 +353,7 @@ namespace TowerDefence3D
                 {
                     List<PathReturnNode> foundPath1 = myPathFinder.FindPath(Start, End);
                     if (foundPath1 != null)
-                        e.PathMove(ref foundPath1, e.PositionCurrent, new Vector2(End.X * TileWidth, End.Y * TileWidth));
+                        e.PathMove(ref foundPath1, e.PositionCurrent, new Vector2(End.X * TileWidth, End.Y * TileWidth + 9));
                 }
             
         }
