@@ -74,9 +74,9 @@ namespace TowerDefence3D
 
         //Pathfinding object
         PathFinder myPathFinder;
-        //List of found nodes:
-        List<PathReturnNode> foundPath;
 
+
+        bool added;
         bool CanMove = false;
 
         //TD STUFF
@@ -84,6 +84,7 @@ namespace TowerDefence3D
         Point spawnPoint;
         Point endPoint;
         Stopwatch respawnTime;
+        int score, lives, money;
 
         #endregion
 
@@ -114,6 +115,12 @@ namespace TowerDefence3D
             Towerz = new Tower[PlayfieldWidth, PlayfieldWidth];
             TowerMatrixs = new Matrix[PlayfieldWidth, PlayfieldWidth];
             enemies = new Enemy[20];
+
+            added = false;
+
+            score = 0;
+            lives = 10;
+            money = 100;
 
             spawnPoint = new Point((int)(PlayfieldWidth / 2), 0);
             endPoint = new Point((int)(PlayfieldWidth / 2), PlayfieldWidth - 1);
@@ -220,16 +227,6 @@ namespace TowerDefence3D
                 Tower_Add = !Tower_Add;
             }
 
-            if (IsKeyPush(Keys.E))
-            {
-                Enemy_Add = !Enemy_Add;
-            }
-
-            if (IsKeyPush(Keys.O))
-            {
-                CanMove = !CanMove;
-            }
-
             if (IsKeyPush(Keys.Subtract))
             {
                 myPathFinder.HeuristicEstimate -= 1;
@@ -240,64 +237,35 @@ namespace TowerDefence3D
             }
 
             camera.Update(elapsedTime, KBState_Current, MSState_Current, MSState_Prev, graphics.GraphicsDevice);
-
-            //This is where you move character:
-            //if (MSState_Current.RightButton == ButtonState.Pressed && MSState_Prev.RightButton == ButtonState.Released)
-            //{
-            //    if (CanMove)
-            //    {
-            //        Click = GetCollision();
-                    
-            //        //MOVE ENEMIES
-
-            //        if (Click.X > 0 && Click.Y > 0)
-            //        {
-
-            //            //Point Start = new Point(((int)(Character.PositionCurrent.X / (int)TileWidth)), ((int)(Character.PositionCurrent.Y / (int)TileWidth)));
-            //            foreach (Enemy e in enemies)
-            //            {
-            //                if (e != null)
-            //                {
-            //                    Point Start = spawnPoint;  //new Point(((int)(e.PositionCurrent.X / (int)TileWidth)), ((int)(e.PositionCurrent.Y / (int)TileWidth)));
-            //                    Point End = endPoint;  // new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
-
-            //                    if (End.X >= 0 && End.Y >= 0 && End.X < PlayfieldWidth && End.Y < PlayfieldWidth)
-            //                    {
-            //                        if (Start == End)
-            //                            e.LinearMove(e.PositionCurrent, new Vector2(Click.X, Click.Y));
-            //                        else
-            //                        {
-            //                            List<PathReturnNode> foundPath1 = myPathFinder.FindPath(Start, End);
-            //                            if (foundPath1 != null)
-            //                                e.PathMove(ref foundPath1, e.PositionCurrent, new Vector2(Click.X, Click.Y));
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //        }
-
-            //    }
-            //}
-
+                        
             //Add or Remove walls
             if (MSState_Current.LeftButton == ButtonState.Pressed)
             {
-                Click = GetCollision();
-
-                Point point = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
-
-                if (point.X >= 0 && point.Y >= 0 && point.X < PlayfieldWidth && point.Y < PlayfieldWidth)
+                added = true;
+            }
+            if (MSState_Current.LeftButton == ButtonState.Released)
+            {
+                if (added == true)
                 {
-                    if (Tower_Add)
+                    Click = GetCollision();
+                    added = false;
+
+                    Point point = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
+
+                    if (point.X >= 0 && point.Y >= 0 && point.X < PlayfieldWidth && point.Y < PlayfieldWidth)
                     {
-                        Towerz[point.X, point.Y].dead = 1;
-                        Towers[point.X, point.Y] = 1;
-                    }
-                    else
-                    {
-                        Towerz[point.X, point.Y].dead = 0;
-                        Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
-                        Towers[point.X, point.Y] = 0;
+                        if (Tower_Add)
+                        {
+                            Towerz[point.X, point.Y].dead = 1;
+                            Towers[point.X, point.Y] = 1;
+                        }
+                        else
+                        {
+                            Towerz[point.X, point.Y].dead = 0;
+                            Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
+                            Towers[point.X, point.Y] = 0;
+                            money -= 10;
+                        }
                     }
                 }
             }
@@ -319,11 +287,18 @@ namespace TowerDefence3D
             }
 
             //Update character and it's mesh position
-            foreach (Enemy e in enemies)
+            for (int i = 0; i < enemies.Length; i++)
             {
-                if (e != null)
+                if (enemies[i] != null)
                 {
-                    e.Update(elapsedTime);
+                    if (enemies[i].alive == false)
+                    {
+                        enemies[i] = null;
+                        score += 5;
+                        money += 5;
+                        break;
+                    }
+                    enemies[i].Update(elapsedTime);
                 }
             }
             //CharacterMatrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(enemies[0].PositionCurrent.X, enemies[0].PositionCurrent.Y, 2.5f);
@@ -353,7 +328,7 @@ namespace TowerDefence3D
                 {
                     List<PathReturnNode> foundPath1 = myPathFinder.FindPath(Start, End);
                     if (foundPath1 != null)
-                        e.PathMove(ref foundPath1, e.PositionCurrent, new Vector2(End.X * TileWidth, End.Y * TileWidth + 9));
+                        e.PathMove(ref foundPath1, e.PositionCurrent, new Vector2(End.X * TileWidth + 5, End.Y * TileWidth + 9));
                 }
             
         }
@@ -470,11 +445,10 @@ namespace TowerDefence3D
             }
 
             spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
-            spriteBatch.DrawString(CourierNew, "Press WASD to move", new Vector2(10, 0), Color.White);
-
-            spriteBatch.DrawString(CourierNew, "Press 'o' to enable movement mode, click MB_Right to move = " + CanMove.ToString(), new Vector2(10, 14), Color.White);
+            spriteBatch.DrawString(CourierNew, "Lives:  " + lives, new Vector2(10, 0), Color.White);
+            spriteBatch.DrawString(CourierNew, "Score:  " + score, new Vector2(160, 0), Color.White);
+            spriteBatch.DrawString(CourierNew, "Money:  " + money, new Vector2(310, 0), Color.White);
             spriteBatch.DrawString(CourierNew, "Press 'B' to enable/disable wall drawing/clearig, click on map to draw = " + Tower_Add.ToString(), new Vector2(10, 30), Color.White);
-            spriteBatch.DrawString(CourierNew, "Herusitic estimate is '" + myPathFinder.HeuristicEstimate.ToString() + "' Press +/- to change", new Vector2(10, 46), Color.White);
             spriteBatch.End();
 
             base.Draw(gameTime);

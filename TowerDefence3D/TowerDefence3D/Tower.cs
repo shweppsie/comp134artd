@@ -61,6 +61,12 @@ namespace TowerDefence3D
             {
                 if (target != null)
                 {
+                    if (target.hp == 0)
+                    {
+                        target.alive = false;
+                        target = null;
+                    }
+
                     if (bullet == null)
                     {
                         watch.Start();

@@ -61,7 +61,7 @@ namespace TowerDefence3D
         //Stuff for the enemy of td
         public const float MAX_HP = 10;
         public int hp;
-        public bool kill;
+        public bool alive;
 
         public Matrix matrix;
         #endregion
@@ -76,8 +76,8 @@ namespace TowerDefence3D
 
             matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X, positionCurrent.Y, 4.0f);
 
-            hp = 10;
-            kill = false;
+            hp = 20;
+            alive = true;
         }
         #endregion
 
@@ -246,7 +246,7 @@ namespace TowerDefence3D
         /// </summary>
         /// <param name="ElapsedTime">Time elapsed form last frame</param>
         public void Update(float ElapsedTime)
-        {
+        {            
             switch (movingStatus)
             {
                 case MovingType.Linear:
