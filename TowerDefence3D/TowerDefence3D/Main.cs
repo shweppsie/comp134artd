@@ -58,12 +58,7 @@ namespace TowerDefence3D
         //Box texture
         private Texture2D Texture_Tower;
         private Texture2D Texture_WhiteQuad;
-
-        //Our "character" location in terms of current tile
-        //private Point CharacterLocation;
-        //Character model world matrix
-        private Matrix CharacterMatrix;
-
+        
         //Is we adding or removing boxes and enemies??
         private bool Tower_Add = false;
         private bool Enemy_Add = false;
@@ -121,11 +116,11 @@ namespace TowerDefence3D
             enemies = new Enemy[20];
 
             spawnPoint = new Point((int)(PlayfieldWidth / 2), 0);
-            endPoint = new Point((int)(PlayfieldWidth / 2), PlayfieldWidth - 1);
+            endPoint = new Point((int)(PlayfieldWidth / 2), PlayfieldWidth);
             respawnTime = new Stopwatch();
             respawnTime.Start();
             
-            //Init walls array, so its emty at the start
+            //Init walls array, so its empty at the start
             //Also inti our Matrix array, so it contains wall positions used to draw them
             for (int y = 0; y < PlayfieldWidth; y++)
             {
@@ -145,15 +140,10 @@ namespace TowerDefence3D
 
             IsMouseVisible = true;
 
-            //CharacterLocation = new Point(0, 0);
-
             myPathFinder = new PathFinder(Towers);
             myPathFinder.HeuristicEstimate = 8;
 
             Enemy.Initalize(24, (int)TileWidth);
-
-            //enemies[0] = new Enemy((new Vector2(0, 5)) * TileWidth );
-            //Character = new Enemy(new Vector2(0, 0));
 
             base.Initialize();
         }
@@ -358,12 +348,12 @@ namespace TowerDefence3D
             Point End = endPoint;  // new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
 
                 if (Start == End)
-                    e.LinearMove(e.PositionCurrent / TileWidth, new Vector2(End.X, End.Y));
+                    e.LinearMove(e.PositionCurrent / TileWidth, new Vector2(End.X * TileWidth, End.Y * TileWidth));
                 else
                 {
                     List<PathReturnNode> foundPath1 = myPathFinder.FindPath(Start, End);
                     if (foundPath1 != null)
-                        e.PathMove(ref foundPath1, e.PositionCurrent, new Vector2(Click.X, Click.Y));
+                        e.PathMove(ref foundPath1, e.PositionCurrent, new Vector2(End.X * TileWidth, End.Y * TileWidth));
                 }
             
         }
