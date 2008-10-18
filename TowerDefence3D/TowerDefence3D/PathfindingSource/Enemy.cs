@@ -62,6 +62,7 @@ namespace TowerDefence3D
         public const float MAX_HP = 10;
         public int hp;
         public bool alive;
+        public bool finished;
 
         public Matrix matrix;
         #endregion
@@ -78,6 +79,7 @@ namespace TowerDefence3D
 
             hp = 20;
             alive = true;
+            finished = false;
         }
         #endregion
 
@@ -141,6 +143,10 @@ namespace TowerDefence3D
             movingStatus = MovingType.None;
             time = 0.0f;
             totalTime = 0.0f;
+            if (currentPosOnPath == endPosOnPath)
+            {
+                finished = true;
+            }
         }
 
         /// <summary>

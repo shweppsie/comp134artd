@@ -77,7 +77,7 @@ namespace TowerDefence3D
 
 
         bool added;
-        bool CanMove = false;
+        bool removed;
 
         //TD STUFF
         Enemy[] enemies;
@@ -117,6 +117,7 @@ namespace TowerDefence3D
             enemies = new Enemy[20];
 
             added = false;
+            removed = false;
 
             score = 0;
             lives = 10;
@@ -254,18 +255,49 @@ namespace TowerDefence3D
 
                     if (point.X >= 0 && point.Y >= 0 && point.X < PlayfieldWidth && point.Y < PlayfieldWidth)
                     {
-                        if (Tower_Add)
+                        if (money >= 10)
+                        {
+                            if (Towers[point.X, point.Y] == 1)
+                            {
+                                Towerz[point.X, point.Y].dead = 0;
+                                Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
+                                Towers[point.X, point.Y] = 0;
+                                money -= 10;
+
+                                foreach (Enemy e in enemies)
+                                {
+                                    if (e != null)
+                                    {
+                                        MoveEnemy(e, new Point((int)(e.PositionCurrent.X / TileWidth), (int)(e.PositionCurrent.Y / TileWidth)));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } 
+            if (MSState_Current.RightButton == ButtonState.Pressed)
+            {
+                removed = true;
+            }
+            if (MSState_Current.RightButton == ButtonState.Released)
+            {
+                if (removed == true)
+                {
+                    Click = GetCollision();
+                    removed = false;
+
+                    Point point = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
+
+                    if (point.X >= 0 && point.Y >= 0 && point.X < PlayfieldWidth && point.Y < PlayfieldWidth)
+                    {
+                        if (Towers[point.X,point.Y] == 0)
                         {
                             Towerz[point.X, point.Y].dead = 1;
                             Towers[point.X, point.Y] = 1;
+                            money += 10;
                         }
-                        else
-                        {
-                            Towerz[point.X, point.Y].dead = 0;
-                            Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
-                            Towers[point.X, point.Y] = 0;
-                            money -= 10;
-                        }
+                        
                     }
                 }
             }
@@ -278,7 +310,7 @@ namespace TowerDefence3D
                     if (enemies[i] == null)
                     {
                         enemies[i] = new Enemy(new Vector2(spawnPoint.X, spawnPoint.Y) * 10);
-                        MoveEnemy(enemies[i]);
+                        MoveEnemy(enemies[i], spawnPoint);
                         respawnTime.Reset();
                         respawnTime.Start();
                         break;
@@ -286,7 +318,7 @@ namespace TowerDefence3D
                 }
             }
 
-            //Update character and it's mesh position
+            //Update enemies and it's mesh position
             for (int i = 0; i < enemies.Length; i++)
             {
                 if (enemies[i] != null)
@@ -299,9 +331,14 @@ namespace TowerDefence3D
                         break;
                     }
                     enemies[i].Update(elapsedTime);
+                    if (enemies[i].finished == true)
+                    {
+                        enemies[i] = null;
+                        lives--;
+                    }
                 }
             }
-            //CharacterMatrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(enemies[0].PositionCurrent.X, enemies[0].PositionCurrent.Y, 2.5f);
+            
 
             //Run the tower methods
             foreach (Tower t in Towerz)
@@ -317,9 +354,9 @@ namespace TowerDefence3D
             base.Update(gameTime);
         }
 
-        private void MoveEnemy(Enemy e)
+        private void MoveEnemy(Enemy e, Point start)
         {
-            Point Start = spawnPoint;  //new Point(((int)(e.PositionCurrent.X / (int)TileWidth)), ((int)(e.PositionCurrent.Y / (int)TileWidth)));
+            Point Start = start;  //new Point(((int)(e.PositionCurrent.X / (int)TileWidth)), ((int)(e.PositionCurrent.Y / (int)TileWidth)));
             Point End = endPoint;  // new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
 
                 if (Start == End)
@@ -447,8 +484,8 @@ namespace TowerDefence3D
             spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
             spriteBatch.DrawString(CourierNew, "Lives:  " + lives, new Vector2(10, 0), Color.White);
             spriteBatch.DrawString(CourierNew, "Score:  " + score, new Vector2(160, 0), Color.White);
-            spriteBatch.DrawString(CourierNew, "Money:  " + money, new Vector2(310, 0), Color.White);
-            spriteBatch.DrawString(CourierNew, "Press 'B' to enable/disable wall drawing/clearig, click on map to draw = " + Tower_Add.ToString(), new Vector2(10, 30), Color.White);
+            spriteBatch.DrawString(CourierNew, "Money:  $" + money, new Vector2(310, 0), Color.White);
+            spriteBatch.DrawString(CourierNew, "Left click to make a tower (- $10). Right click to sell a tower (+ $10)", new Vector2(10, 30), Color.White);
             spriteBatch.End();
 
             base.Draw(gameTime);
