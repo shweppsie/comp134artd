@@ -17,6 +17,20 @@ using DirectShowLib;
 
 namespace projAR
 {
+    static class Program
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        static void Main(string[] args)
+        {
+            using (Game1 game = new Game1())
+            {
+                game.Run();
+            }
+        }
+    }
+
     /// <summary>
     /// This is the main type for your game
     /// </summary>
@@ -114,17 +128,14 @@ namespace projAR
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            //Console.WriteLine("Updating");
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                 this.Exit();
 
             matrix = new Matrix();
             byte[] w = cam.GetFlippedImage();
-            if (tracker.Track(w , out view, out matrix))
-            {
-                //do drawing stuff
-            }
+            tracker.Track(w, out view, out matrix);
+            view.M43 = -view.M43;
 
             GraphicsDevice.Textures[0] = null; 
             t.SetData<byte>(w);
@@ -148,9 +159,9 @@ namespace projAR
                 //Console.WriteLine(mmi.transform);
                 //myMarkerInfo.transform
                 //e.World = Matrix.CreateScale(4.0f) * ;
-                e.World = Matrix.Identity;
-                e.View = view;
-                //e.View = Matrix.Identity;
+                e.World = view;//Matrix.Identity;
+                //e.View = ;
+                e.View = Matrix.Identity;
                 e.DiffuseColor = Color.Purple.ToVector3();
                 e.Texture = t;
                 e.TextureEnabled = false;
