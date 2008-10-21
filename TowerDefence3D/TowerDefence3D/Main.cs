@@ -86,6 +86,7 @@ namespace TowerDefence3D
         Point spawnPoint;
         Point endPoint;
         Stopwatch respawnTime;
+        private Matrix orientation;
         int score, lives, money;
 
         #endregion
@@ -146,7 +147,7 @@ namespace TowerDefence3D
 
             PlaneMatrix = new Matrix();
             int Scale = PlayfieldWidth * (int)TileWidth;
-            PlaneMatrix = Matrix.CreateScale(Scale) * Matrix.CreateTranslation(new Vector3(Scale/2, Scale/2, 0));
+            PlaneMatrix = Matrix.CreateScale(Scale) * Matrix.CreateTranslation(new Vector3(Scale/2, Scale/2, -20));
 
             camera = new Camera(new Vector3(150, 150, 125), new Vector3(5.45f, 0, -3.95f));
 
@@ -227,7 +228,7 @@ namespace TowerDefence3D
             MSState_Prev = MSState_Current;
             MSState_Current = Mouse.GetState();
 
-            if (pauseGame.ElapsedMilliseconds > 15000)
+            if (pauseGame.ElapsedMilliseconds > 100)
             {
                 paused = false;
                 pauseGame.Reset();
@@ -265,7 +266,7 @@ namespace TowerDefence3D
                             if (Towers[point.X, point.Y] == 1)
                             {
                                 Towerz[point.X, point.Y].dead = 0;
-                                Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
+                                //Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
                                 Towers[point.X, point.Y] = 0;
                                 money -= 10;
 
@@ -406,10 +407,10 @@ namespace TowerDefence3D
             Vector3 endC = new Vector3(MSState_Current.X, MSState_Current.Y, 4096.0f);
 
             Vector3 nearPoint = graphics.GraphicsDevice.Viewport.Unproject(startC,
-                camera.mProjection, camera.mView, Matrix.Identity);
+                camera.mProjection, camera.mView, orientation);
 
             Vector3 farPoint = graphics.GraphicsDevice.Viewport.Unproject(endC,
-                camera.mProjection, camera.mView, Matrix.Identity);
+                camera.mProjection, camera.mView, orientation);
 
             Vector3 rayDirection = Vector3.Normalize(farPoint - nearPoint);
             float cosAlpha = Vector3.Dot(Vector3.UnitZ, rayDirection);
@@ -419,6 +420,7 @@ namespace TowerDefence3D
 
             return nearPoint - (rayDirection * distance);
         }
+
 
         float start = 0;
         /// <summary>
@@ -440,8 +442,14 @@ namespace TowerDefence3D
 
             //Draw ground plane
             effect.Parameters["xTexture0"].SetValue(Texture_Tower);
-            effect.Parameters["world"].SetValue(PlaneMatrix);
+            int Scale = PlayfieldWidth * (int)TileWidth;
 
+            //World transformation of the Grid - Will get from the AR marker
+            orientation =  Matrix.CreateRotationX((float)gameTime.TotalRealTime.TotalMilliseconds / 2000.0f);
+            PlaneMatrix = Matrix.CreateScale(Scale) *Matrix.CreateTranslation(new Vector3(Scale / 2, Scale / 2, 0)) * orientation ;
+            
+            effect.Parameters["world"].SetValue(PlaneMatrix);
+            GraphicsDevice.RenderState.CullMode = CullMode.None;
             effect.Parameters["emmissive"].SetValue(Color.White.ToVector4()*0.4f);
             DrawSampleMesh(Model_Plane);
 
@@ -456,7 +464,7 @@ namespace TowerDefence3D
                 if (e != null)
                 {
                     effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
-                    effect.Parameters["world"].SetValue(e.matrix);
+                    effect.Parameters["world"].SetValue(e.matrix * orientation);
 
                     if (Microsoft.Xna.Framework.Input.Keyboard.GetState().IsKeyDown(Keys.Down))
                     {
@@ -482,7 +490,7 @@ namespace TowerDefence3D
                 if (t.bullet != null)
                 {
                     effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
-                    effect.Parameters["world"].SetValue(t.bullet.matrix);
+                    effect.Parameters["world"].SetValue( t.bullet.matrix);
                     effect.Parameters["emmissive"].SetValue(Color.Red.ToVector4());
 
                     DrawSampleMesh(Model_Sphere);
@@ -536,7 +544,7 @@ namespace TowerDefence3D
                 {
                     if (Towerz[x, y].dead == 0)
                     {
-                        effect.Parameters["world"].SetValue(TowerMatrixs[x, y]);
+                        effect.Parameters["world"].SetValue(TowerMatrixs[x, y] * orientation);
 
                         effect.Begin(SaveStateMode.None);
 
