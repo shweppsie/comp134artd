@@ -266,7 +266,7 @@ namespace TowerDefence3D
                             if (Towers[point.X, point.Y] == 1)
                             {
                                 Towerz[point.X, point.Y].dead = 0;
-                                //Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
+                                Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
                                 Towers[point.X, point.Y] = 0;
                                 money -= 10;
 
@@ -490,7 +490,7 @@ namespace TowerDefence3D
                 if (t.bullet != null)
                 {
                     effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
-                    effect.Parameters["world"].SetValue( t.bullet.matrix);
+                    effect.Parameters["world"].SetValue(t.bullet.matrix * orientation);
                     effect.Parameters["emmissive"].SetValue(Color.Red.ToVector4());
 
                     DrawSampleMesh(Model_Sphere);
