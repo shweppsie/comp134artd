@@ -59,9 +59,8 @@ namespace TowerDefence3D
         private Texture2D Texture_Tower;
         private Texture2D Texture_WhiteQuad;
         
-        //Is we adding or removing boxes and enemies??
+        //Is we adding or removing boxes??
         private bool Tower_Add = false;
-        private bool Enemy_Add = false;
 
         //Effect
         private Effect effect;
@@ -75,6 +74,9 @@ namespace TowerDefence3D
         //Pathfinding object
         PathFinder myPathFinder;
 
+        //Game pausing stopwatch
+        Stopwatch pauseGame;
+        bool paused;
 
         bool added;
         bool removed;
@@ -95,8 +97,6 @@ namespace TowerDefence3D
             graphics.PreferredBackBufferWidth = 1024;
             graphics.PreferredBackBufferHeight = 768;
             graphics.IsFullScreen = false;
-            graphics.SynchronizeWithVerticalRetrace = false;
-            IsFixedTimeStep = false;
 
             Content.RootDirectory = "Content";
         }
@@ -115,6 +115,10 @@ namespace TowerDefence3D
             Towerz = new Tower[PlayfieldWidth, PlayfieldWidth];
             TowerMatrixs = new Matrix[PlayfieldWidth, PlayfieldWidth];
             enemies = new Enemy[20];
+
+            pauseGame = new Stopwatch();
+            pauseGame.Start();
+            paused = true;
 
             added = false;
             removed = false;
@@ -144,7 +148,7 @@ namespace TowerDefence3D
             int Scale = PlayfieldWidth * (int)TileWidth;
             PlaneMatrix = Matrix.CreateScale(Scale) * Matrix.CreateTranslation(new Vector3(Scale/2, Scale/2, 0));
 
-            camera = new Camera(new Vector3(50, 50, 100), new Vector3(5.15f, 0, 2.35f));
+            camera = new Camera(new Vector3(150, 150, 125), new Vector3(5.45f, 0, -3.95f));
 
             IsMouseVisible = true;
 
@@ -223,9 +227,10 @@ namespace TowerDefence3D
             MSState_Prev = MSState_Current;
             MSState_Current = Mouse.GetState();
 
-            if (IsKeyPush(Keys.B))
+            if (pauseGame.ElapsedMilliseconds > 15000)
             {
-                Tower_Add = !Tower_Add;
+                paused = false;
+                pauseGame.Reset();
             }
 
             if (IsKeyPush(Keys.Subtract))
@@ -303,17 +308,20 @@ namespace TowerDefence3D
             }
 
             //Respawn enemies !!
-            if (respawnTime.ElapsedMilliseconds > 3000)
+            if (paused == false)
             {
-                for (int i = 0; i < enemies.Length; i++)
+                if (respawnTime.ElapsedMilliseconds > 3000)
                 {
-                    if (enemies[i] == null)
+                    for (int i = 0; i < enemies.Length; i++)
                     {
-                        enemies[i] = new Enemy(new Vector2(spawnPoint.X, spawnPoint.Y) * 10);
-                        MoveEnemy(enemies[i], spawnPoint);
-                        respawnTime.Reset();
-                        respawnTime.Start();
-                        break;
+                        if (enemies[i] == null)
+                        {
+                            enemies[i] = new Enemy(new Vector2(spawnPoint.X, spawnPoint.Y) * 10);
+                            MoveEnemy(enemies[i], spawnPoint);
+                            respawnTime.Reset();
+                            respawnTime.Start();
+                            break;
+                        }
                     }
                 }
             }
@@ -485,6 +493,8 @@ namespace TowerDefence3D
             spriteBatch.DrawString(CourierNew, "Lives:  " + lives, new Vector2(10, 0), Color.White);
             spriteBatch.DrawString(CourierNew, "Score:  " + score, new Vector2(160, 0), Color.White);
             spriteBatch.DrawString(CourierNew, "Money:  $" + money, new Vector2(310, 0), Color.White);
+            if (paused == true)
+                spriteBatch.DrawString(CourierNew, "Time till start:  " + (15 - pauseGame.ElapsedMilliseconds/1000) +"s", new Vector2(780, 0), Color.White);
             spriteBatch.DrawString(CourierNew, "Left click to make a tower (- $10). Right click to sell a tower (+ $10)", new Vector2(10, 30), Color.White);
             spriteBatch.End();
 
