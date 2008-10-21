@@ -28,7 +28,6 @@ namespace projAR
         ArManWrap.PIXEL_FORMAT arPixelFormat;
 
         //AR tracker data structures
-        object[] args = new object[2];
         Dictionary<int, MyMarkerInfo> dicMarkerInfos = new Dictionary<int, MyMarkerInfo>();
 
         /// <summary>
@@ -37,17 +36,20 @@ namespace projAR
         /// <param name="control">Control to draw to</param>
         public Tracker(int _width, int _height, int _bytesperpixel, Guid _sampleGrabberSubType, ArManWrap.PIXEL_FORMAT _arPixelFormat)
         {
+            //set up general AR stuff
             width = _width;
             height = _height;
             bytesPerPixel = _bytesperpixel;
             sampleGrabberSubType = _sampleGrabberSubType;
             arPixelFormat = _arPixelFormat;
 
+            //get current directory
             arDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetModules()[0].FullyQualifiedName);
 
             //make a short for bits per pixel
             bitsPerPixel = (short)(bytesPerPixel * 8);
             
+            //make the tracker
             tracker = make_tracker();
         }
 
@@ -65,36 +67,44 @@ namespace projAR
         /// <returns>An instance of a tracker</returns>
         private IntPtr make_tracker()
         {
+            //make a tracker to find multiple markers
             IntPtr tracker = ArManWrap.ARTKPConstructTrackerMulti(-1, width, height);
-
             if (tracker == IntPtr.Zero)
-            {
                 throw new Exception("ARTKPConstructTracker failed");
-            }
 
+            //get information about the AR
             IntPtr ipDesc = ArManWrap.ARTKPGetDescription(tracker);
             string desc = Marshal.PtrToStringAnsi(ipDesc);
-            Console.WriteLine(desc);
+            System.Diagnostics.Debug.WriteLine(desc);
+            
+            //get the pixelformat
             int pixelFormat = ArManWrap.ARTKPSetPixelFormat(tracker, (int)arPixelFormat);
 
             //camera calibration datafile
             string cameraCalibrationPath = arDir + "/data/no_distortion.cal";
+            
+            //file containing a list of markers
             string multipath = arDir + "/data/markerboard_480-499.cfg";
 
+            //initialise the tracker
             int retInit = ArManWrap.ARTKPInitMulti(tracker, cameraCalibrationPath, multipath, 1.0f, 3000f);
             if (retInit != 0)
-            {
                 throw new Exception("ARTKPInitMulti failed");
-            }
 
+            //border we're looking for?
             ArManWrap.ARTKPSetBorderWidth(tracker, 0.125f);
+            
             //set lighting threshold. this is set to automatic
             bool autoThresh = ArManWrap.ARTKPIsAutoThresholdActivated(tracker);
             ArManWrap.ARTKPActivateAutoThreshold(tracker, true);
+            
             //set undistortion mode
             ArManWrap.ARTKPSetUndistortionMode(tracker, (int)ArManWrap.UNDIST_MODE.UNDIST_LUT);
+            
             //set tracker to look for simple ID-based markers
             ArManWrap.ARTKPSetMarkerMode(tracker, (int)ArManWrap.MARKER_MODE.MARKER_ID_SIMPLE);
+            
+            //dont use lite detection
             ArManWrap.ARTKPSetUseDetectLite(tracker, false);
 
             return tracker;
@@ -108,7 +118,7 @@ namespace projAR
         /// <param name="finalmodelMatrix">Model Matrix</param>
         /// <param name="fi">bytes from webcam in bitmap form</param>
         /// <returns>boolean value representing if the tracker has been detected</returns>
-        public Dictionary<int, MyMarkerInfo> Track(byte[] video, out Matrix finalprojMatrix)//, out Matrix finalmodelViewMatrix)
+        public Dictionary<int, MyMarkerInfo> Track(byte[] video, out Matrix finalprojMatrix)
         {
             try
             {
@@ -118,33 +128,28 @@ namespace projAR
                     mmi.found = false;
                 }
 
+                //get the number of visible markers
                 int numMarkers = ArManWrap.ARTKPCalcMulti(tracker, video); //uses ArDetectMarker internally (unless set to Lite)
 
-                float[] modelViewMatrix = new float[16];
+                //float array for the projetion matrix
                 float[] projMatrix = new float[16];
 
-                ArManWrap.ARTKPGetModelViewMatrix(tracker, modelViewMatrix);
+                //get the projection matrix
                 ArManWrap.ARTKPGetProjectionMatrix(tracker, projMatrix);
 
-                //finalmodelViewMatrix = FloatToMatrix(modelViewMatrix);
+                //convert the projection matrix from OpenGL to XNA
                 finalprojMatrix = FloatToMatrix(projMatrix);
 
-                //we have markers to deal with
+                //if we can see markers then check them
                 if (numMarkers > 0)
-                {
                     check_markers(numMarkers);
-                }
-
-                //args[0] = finalmodelViewMatrix;
-                args[1] = dicMarkerInfos;
 
                 return dicMarkerInfos;
             }
             catch (Exception e)
             {
                 int lastError = Marshal.GetLastWin32Error();
-                Console.WriteLine("Error: " + lastError.ToString() + "\r\n" + e.ToString());
-                //finalmodelViewMatrix = new Matrix();
+                System.Diagnostics.Debug.WriteLine("Error: " + lastError.ToString() + "\r\n" + e.ToString());
                 finalprojMatrix = new Matrix();
                 return null;
             }
@@ -152,44 +157,56 @@ namespace projAR
 
         private void check_markers(int numMarkers)
         {
-            Console.WriteLine(numMarkers.ToString() + " markers detected!");
+            System.Diagnostics.Debug.WriteLine(numMarkers.ToString() + " markers detected!");
             for (int i = 0; i < numMarkers; i++)
             {
+                //get information about the marker
                 ArManWrap.ARMarkerInfo armi = ArManWrap.ARTKPGetDetectedMarkerStruct(tracker, i);
                 IntPtr markerInfos = ArManWrap.ARTKPGetDetectedMarker(tracker, i);
                 
+                //various variables
                 float[] center = new float[2];
                 float width = 50;
                 float[] matrix = new float[16];
                 float Translation = 0;
 
+                //new marker object
                 MyMarkerInfo mmi = null;
+                
+                //have we seen this marker before?
                 if (dicMarkerInfos.ContainsKey(armi.id) == true)
                 {
+                    //yes, then just update the marker object
                     mmi = dicMarkerInfos[armi.id];
-                    //make sure the matrix i'm passing in is ordered correctly
                     Translation = ArManWrap.ARTKPGetTransMatCont(tracker, markerInfos, mmi.prevMatrix, center, width, matrix);
-                    //ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);
-
                 }
                 else
                 {
+                    //no, make a new marker object
                     mmi = new MyMarkerInfo();
                     dicMarkerInfos.Add(armi.id, mmi);
-                    //ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);
                     //set Translation and matix
                     Translation = ArManWrap.ARTKPGetTransMat(tracker, markerInfos, center, width, matrix);
                 }
+                //manual deletion of markerinfos (unmanaged)
                 Marshal.Release(markerInfos);
+                
+                //mark the found flag so XNA knows to draw this marker
                 mmi.found = true;
+
+                //Reset the notfound count
                 mmi.notFoundCount = 0;
+
+                //add information identidying the marker
                 mmi.markerInfo = armi;
 
                 //keep old matrix for a frame
                 mmi.prevMatrix = matrix;
-                //Matix for XNA
-                Matrix XNAmatrix = oldFloatToMatix(matrix);
-                //Matrix XNAmatrix = FloatToMatrix(matrix);
+                
+                //Convert matrix for XNA
+                Matrix XNAmatrix = OtherFloatToMatix(matrix);
+                
+                //put the matrix in the marker object
                 mmi.transform = XNAmatrix;
             }
         }
@@ -207,7 +224,7 @@ namespace projAR
                     matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++]);
         }
 
-        Matrix oldFloatToMatix(float[] old)
+        Matrix OtherFloatToMatix(float[] old)
         {
             Matrix m3d = new Matrix();
             unsafe

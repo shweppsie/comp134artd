@@ -39,7 +39,6 @@ namespace projAR
         //AR Stuff
         Camera cam;
         Tracker tracker;
-        Matrix matrix;
 
         //XNA Stuff
         GraphicsDeviceManager graphics;
@@ -134,12 +133,16 @@ namespace projAR
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                 this.Exit();
 
-            //matrix = new Matrix();
-            byte[] w = cam.GetFlippedImage();
-            ARMarkers = tracker.Track(w, out projection);//, out projection);
-            //view.M43 = -view.M43;
+            //get a frame of the webcam
+            w = cam.GetFlippedImage();
 
+            //give the webcam feed to AR to work with
+            ARMarkers = tracker.Track(w, out projection);
+
+            //fixes XNA bug with webcam feed
             GraphicsDevice.Textures[0] = null; 
+            
+            //output the webcam
             t.SetData<byte>(w);
 
             base.Update(gameTime);
@@ -156,32 +159,34 @@ namespace projAR
             spriteBatch.Draw(t, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
 
-            //projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60.0f), 1.33333f, 1.0f, 1000.0f);
-
             #region AR Ghosting
             if (ARMarkers != null)
             {
+                //check each marker in the list returned by AR
                 foreach (MyMarkerInfo mmi in ARMarkers.Values)
                 {
                     //marker not found
                     if (mmi.found == false)
                     {
                         //leave a ghost for 5 frames
-                        if (mmi.notFoundCount >= 5)
+                        if (mmi.notFoundCount < 5)
                         {
+                            //count another frame for the ghost
+                            mmi.notFoundCount += 1;
+                        }
+                        else
+                        {
+                            //marker has been gone too long, stop drawing it
                             if (mmi.draw == true)
                             {
                                 mmi.draw = false;
                             }
                         }
-                        else
-                        {
-                            mmi.notFoundCount += 1;
-                        }
                     }
                     else
                     //marker found
                     {
+                        //so draw it
                         if (mmi.draw == false)
                             mmi.draw = true;
                     }
@@ -189,13 +194,13 @@ namespace projAR
             }
             #endregion
 
+            //now to draw the markers
             foreach (MyMarkerInfo mmi in ARMarkers.Values)
             {
+                //is this marker set to be drawn?
                 if (mmi.draw)
                 {
-                    //mmi.Matrix;
-                    Console.WriteLine(mmi.transform.Translation);
-                    //myMarkerInfo.transform
+                    //System.Diagnostics.Debug.WriteLine(mmi.transform.Translation);
                     e.World = Matrix.CreateScale(4.0f)*Matrix.CreateTranslation(mmi.transform.Translation);//Matrix.Identity;
                     e.View = Matrix.Identity;
                     e.DiffuseColor = Color.Purple.ToVector3();
