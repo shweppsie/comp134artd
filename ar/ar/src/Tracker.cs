@@ -108,7 +108,7 @@ namespace projAR
         /// <param name="finalmodelMatrix">Model Matrix</param>
         /// <param name="fi">bytes from webcam in bitmap form</param>
         /// <returns>boolean value representing if the tracker has been detected</returns>
-        public Dictionary<int, MyMarkerInfo> Track(byte[] video, out Matrix finalprojMatrix, out Matrix finalmodelViewMatrix)
+        public Dictionary<int, MyMarkerInfo> Track(byte[] video, out Matrix finalprojMatrix)//, out Matrix finalmodelViewMatrix)
         {
             try
             {
@@ -126,8 +126,8 @@ namespace projAR
                 ArManWrap.ARTKPGetModelViewMatrix(tracker, modelViewMatrix);
                 ArManWrap.ARTKPGetProjectionMatrix(tracker, projMatrix);
 
-                finalmodelViewMatrix = convert(modelViewMatrix);
-                finalprojMatrix = convert(projMatrix);
+                //finalmodelViewMatrix = FloatToMatrix(modelViewMatrix);
+                finalprojMatrix = FloatToMatrix(projMatrix);
 
                 //we have markers to deal with
                 if (numMarkers > 0)
@@ -135,7 +135,7 @@ namespace projAR
                     check_markers(numMarkers);
                 }
 
-                args[0] = finalmodelViewMatrix;
+                //args[0] = finalmodelViewMatrix;
                 args[1] = dicMarkerInfos;
 
                 return dicMarkerInfos;
@@ -144,7 +144,7 @@ namespace projAR
             {
                 int lastError = Marshal.GetLastWin32Error();
                 Console.WriteLine("Error: " + lastError.ToString() + "\r\n" + e.ToString());
-                finalmodelViewMatrix = new Matrix();
+                //finalmodelViewMatrix = new Matrix();
                 finalprojMatrix = new Matrix();
                 return null;
             }
@@ -160,29 +160,37 @@ namespace projAR
                 
                 float[] center = new float[2];
                 float width = 50;
-                float[] matrix = new float[12];
-                float retTransMat = 0;
+                float[] matrix = new float[16];
+                float Translation = 0;
 
                 MyMarkerInfo mmi = null;
                 if (dicMarkerInfos.ContainsKey(armi.id) == true)
                 {
                     mmi = dicMarkerInfos[armi.id];
                     //make sure the matrix i'm passing in is ordered correctly
-                    retTransMat = ArManWrap.ARTKPGetTransMatCont(tracker, markerInfos, mmi.prevMatrix, center, width, matrix);
+                    Translation = ArManWrap.ARTKPGetTransMatCont(tracker, markerInfos, mmi.prevMatrix, center, width, matrix);
+                    //ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);
+
                 }
                 else
                 {
                     mmi = new MyMarkerInfo();
                     dicMarkerInfos.Add(armi.id, mmi);
-                    retTransMat = ArManWrap.ARTKPGetTransMat(tracker, markerInfos, center, width, matrix);
+                    //ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);
+                    //set Translation and matix
+                    Translation = ArManWrap.ARTKPGetTransMat(tracker, markerInfos, center, width, matrix);
                 }
                 Marshal.Release(markerInfos);
                 mmi.found = true;
                 mmi.notFoundCount = 0;
                 mmi.markerInfo = armi;
+
+                //keep old matrix for a frame
                 mmi.prevMatrix = matrix;
-                Matrix m3d = ArManWrap.GetXNAMatrixFromOpenGl12(matrix);
-                mmi.transform = m3d;
+                //Matix for XNA
+                Matrix XNAmatrix = oldFloatToMatix(matrix);
+                //Matrix XNAmatrix = FloatToMatrix(matrix);
+                mmi.transform = XNAmatrix;
             }
         }
 
@@ -191,12 +199,35 @@ namespace projAR
         /// </summary>
         /// <param name="matrix">matrix to convert in float[] form</param>
         /// <returns>converted matrix in XNA Matrix form</returns>
-        Matrix convert(float[] matrix)
+        Matrix FloatToMatrix(float[] matrix)
         {
             int a = 0;
             return new Matrix(matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++],
                     matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++],
                     matrix[a++], matrix[a++], matrix[a++], matrix[a++], matrix[a++]);
+        }
+
+        Matrix oldFloatToMatix(float[] old)
+        {
+            Matrix m3d = new Matrix();
+            unsafe
+            {
+                m3d.M11 = old[0];
+                m3d.M12 = old[4];
+                m3d.M13 = old[8];
+                m3d.M14 = 0;
+                m3d.M21 = old[1];
+                m3d.M22 = old[5];
+                m3d.M23 = old[9];
+                m3d.M24 = 0;
+                m3d.M31 = old[2];
+                m3d.M32 = old[6];
+                m3d.M33 = old[10];
+                m3d.M34 = 0;
+                m3d.Translation = new Vector3(old[3], old[7], old[11]);
+                m3d.M44 = 1;
+            }
+            return m3d;
         }
     }
 }

@@ -51,6 +51,9 @@ namespace projAR
         Texture2D i;
         byte[] w;
 
+        //list of markers return from AR
+        Dictionary<int, MyMarkerInfo> ARMarkers;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -70,6 +73,7 @@ namespace projAR
             // TODO: Add your initialization logic here
             view = Matrix.Identity;
             world = Matrix.Identity;
+            projection = Matrix.Identity;
 
             base.Initialize();
             try
@@ -108,8 +112,6 @@ namespace projAR
                 }
             }
             t = new Texture2D(GraphicsDevice, 640, 480, 1, TextureUsage.None, GraphicsDevice.PresentationParameters.BackBufferFormat);
-
-            // TODO: use this.Content to load your game content here
         }
 
         /// <summary>
@@ -132,10 +134,10 @@ namespace projAR
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                 this.Exit();
 
-            matrix = new Matrix();
+            //matrix = new Matrix();
             byte[] w = cam.GetFlippedImage();
-            tracker.Track(w, out view, out matrix);
-            view.M43 = -view.M43;
+            ARMarkers = tracker.Track(w, out projection);//, out projection);
+            //view.M43 = -view.M43;
 
             GraphicsDevice.Textures[0] = null; 
             t.SetData<byte>(w);
@@ -153,26 +155,60 @@ namespace projAR
             spriteBatch.Begin();
             spriteBatch.Draw(t, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
-            //projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60.0f), 1.33333f, 1.0f, 1000.0f);
-            //foreach (MyMarkerInfo mmi in ar.dicMarkerInfos.Values)
-            //{
-                //Console.WriteLine(mmi.transform);
-                //myMarkerInfo.transform
-                //e.World = Matrix.CreateScale(4.0f) * ;
-                e.World = view;//Matrix.Identity;
-                //e.View = ;
-                e.View = Matrix.Identity;
-                e.DiffuseColor = Color.Purple.ToVector3();
-                e.Texture = t;
-                e.TextureEnabled = false;
-                e.Projection = projection;
 
-                // TODO: Add your drawing code here
-                foreach (ModelMesh m in mod.Meshes)
+            //projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60.0f), 1.33333f, 1.0f, 1000.0f);
+
+            #region AR Ghosting
+            if (ARMarkers != null)
+            {
+                foreach (MyMarkerInfo mmi in ARMarkers.Values)
                 {
-                   m.Draw();
+                    //marker not found
+                    if (mmi.found == false)
+                    {
+                        //leave a ghost for 5 frames
+                        if (mmi.notFoundCount >= 5)
+                        {
+                            if (mmi.draw == true)
+                            {
+                                mmi.draw = false;
+                            }
+                        }
+                        else
+                        {
+                            mmi.notFoundCount += 1;
+                        }
+                    }
+                    else
+                    //marker found
+                    {
+                        if (mmi.draw == false)
+                            mmi.draw = true;
+                    }
                 }
-            //}
+            }
+            #endregion
+
+            foreach (MyMarkerInfo mmi in ARMarkers.Values)
+            {
+                if (mmi.draw)
+                {
+                    //mmi.Matrix;
+                    Console.WriteLine(mmi.transform.Translation);
+                    //myMarkerInfo.transform
+                    e.World = Matrix.CreateScale(4.0f)*Matrix.CreateTranslation(mmi.transform.Translation);//Matrix.Identity;
+                    e.View = Matrix.Identity;
+                    e.DiffuseColor = Color.Purple.ToVector3();
+                    e.Texture = t;
+                    e.TextureEnabled = false;
+                    e.Projection = projection;
+
+                    foreach (ModelMesh m in mod.Meshes)
+                    {
+                        m.Draw();
+                    }
+                }
+            }
 
             base.Draw(gameTime);
         }
