@@ -11,9 +11,9 @@ using Microsoft.Xna.Framework.Storage;
 using System.Runtime.InteropServices;
 
 using ARTKPManagedWrapper;
-using forms = System.Windows.Forms;
-using System.Windows.Forms;
 using DirectShowLib;
+using System.Diagnostics;
+using TowerDefence3D;
 
 namespace projAR
 {
@@ -36,26 +36,101 @@ namespace projAR
     /// </summary>
     public class Game1 : Microsoft.Xna.Framework.Game
     {
+        #region AR
         //AR Stuff
-        Camera cam;
+        ARCamera cam;
+        //list of markers return from AR
+        Dictionary<int, MyMarkerInfo> ARMarkers;
         Tracker tracker;
+        //array for bytes from webcam
+        byte[] w;
+        #endregion
 
         //XNA Stuff
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         Model mod;
-        BasicEffect e;
         Matrix world, view, projection;
         Texture2D t;
         Texture2D i;
-        byte[] w;
+        Dictionary<int, Tower> towers;
 
-        //list of markers return from AR
-        Dictionary<int, MyMarkerInfo> ARMarkers;
+        //Tower defence stuff
+
+        SpriteFont CourierNew;
+
+        //Width of "playfield"
+        private const int PlayfieldWidth = 12;
+
+        //Width of one playfield tile
+        private const float TileWidth = 50.0f;
+
+        //Our movement restriction information array - 0 - cant move there - Any other positive value - Move penality
+        private byte[,] Towers;
+        private Tower[,] Towerz;
+
+        //Keyboard states
+        private KeyboardState KBState_Current;
+        private KeyboardState KBState_Prev;
+        //Mouse states
+        private MouseState MSState_Current;
+        private MouseState MSState_Prev;
+
+        //Elapsed game time
+        float elapsedTime;
+
+        //Matrix array, containing positions, where to place walls - you coudl also calculate them on the fly and save some memory, but i think, that
+        //it works fine in this way (256kb isnt to much nowdays :))
+        private Matrix[,] TowerMatrixs;
+
+        //There is need to scale ground plane matrix, acording to PlayfieldWidth
+        private Matrix PlaneMatrix;
+
+        //Models used in this sample
+        private Model Model_Tower;
+        private Model Model_Sphere;
+        private Model Model_Plane;
+
+        //Box texture
+        private Texture2D Texture_Tower;
+        private Texture2D Texture_WhiteQuad;
+
+        //Effect
+        private Effect effect;
+
+        //Our Free-Fly Camera
+        Camera camera;
+
+        //Location in 3D where a mouse click has ocurred
+        Vector3 Click;
+
+        //Pathfinding object
+        PathFinder myPathFinder;
+
+        //Game pausing stopwatch
+        Stopwatch pauseGame;
+        bool paused;
+
+        bool added;
+        bool removed;
+
+        //TD STUFF
+        Enemy[] enemies;
+        Point spawnPoint;
+        Point endPoint;
+        Stopwatch respawnTime;
+        private Matrix orientation;
+        int score, lives, money;
+        const int width = 640;
+        const int height = 480;
+
+        bool drawgrid = true;
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
+            graphics.PreferredBackBufferHeight = 768;
+            graphics.PreferredBackBufferWidth = 1024;
             this.IsFixedTimeStep = false;
             graphics.SynchronizeWithVerticalRetrace = false;
             Content.RootDirectory = "Content";
@@ -69,7 +144,8 @@ namespace projAR
         /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
+            #region AR
+
             view = Matrix.Identity;
             world = Matrix.Identity;
             projection = Matrix.Identity;
@@ -78,16 +154,65 @@ namespace projAR
             try
             {
                 //various variables
-                const int width = 640;
-                const int height = 480;
                 const int bytesPerPixel = 4;
                 Guid sampleGrabberSubType = MediaSubType.ARGB32;
                 ArManWrap.PIXEL_FORMAT arPixelFormat = ArManWrap.PIXEL_FORMAT.PIXEL_FORMAT_ABGR;
 
-                cam = new Camera(0, width, height, bytesPerPixel, sampleGrabberSubType);
+                cam = new ARCamera(0, width, height, bytesPerPixel, sampleGrabberSubType);
                 tracker = new Tracker(width, height, bytesPerPixel, sampleGrabberSubType, arPixelFormat);
             }
-            catch (Exception e) { MessageBox.Show(e.Message); }
+            catch (Exception e) { System.Diagnostics.Debug.WriteLine(e.Message); }
+
+            towers = new Dictionary<int, Tower>();
+
+            #endregion
+
+            //Tower defense stuff
+            Towers = new byte[PlayfieldWidth, PlayfieldWidth];
+            Towerz = new Tower[PlayfieldWidth, PlayfieldWidth];
+            TowerMatrixs = new Matrix[PlayfieldWidth, PlayfieldWidth];
+            enemies = new Enemy[20];
+
+            pauseGame = new Stopwatch();
+            pauseGame.Start();
+            paused = true;
+
+            added = false;
+            removed = false;
+
+            score = 0;
+            lives = 10;
+            money = 99999999;
+
+            spawnPoint = new Point((int)(PlayfieldWidth / 2), 0);
+            endPoint = new Point((int)(PlayfieldWidth / 2), PlayfieldWidth - 1);
+            respawnTime = new Stopwatch();
+            respawnTime.Start();
+
+            //Init walls array, so its empty at the start
+            //Also inti our Matrix array, so it contains wall positions used to draw them
+            for (int y = 0; y < PlayfieldWidth; y++)
+            {
+                for (int x = 0; x < PlayfieldWidth; x++)
+                {
+                    Towers[x, y] = 1;
+                    Towerz[x, y] = new Tower(Vector3.Zero);
+                    TowerMatrixs[x, y] = Matrix.CreateTranslation(new Vector3(x * TileWidth + 5 - (PlayfieldWidth * TileWidth / 2), y * TileWidth + 5 - (PlayfieldWidth * TileWidth / 2), 0.0f));
+                }
+            }
+
+            PlaneMatrix = new Matrix();
+            int Scale = PlayfieldWidth * (int)TileWidth;
+            PlaneMatrix = Matrix.CreateScale(Scale) * Matrix.CreateTranslation(new Vector3(Scale / 2, Scale / 2, -20));
+
+            camera = new Camera(new Vector3(150, 150, 125), new Vector3(5.45f, 0, -3.95f));
+
+            IsMouseVisible = true;
+
+            myPathFinder = new PathFinder(Towers);
+            myPathFinder.HeuristicEstimate = 8;
+
+            Enemy.Initalize(24, (int)TileWidth);
         }
 
         /// <summary>
@@ -96,21 +221,60 @@ namespace projAR
         /// </summary>
         protected override void LoadContent()
         {
+
+            DepthStencilBuffer b = new DepthStencilBuffer(GraphicsDevice, 1024, 768, DepthFormat.Depth24Stencil8);
+            GraphicsDevice.DepthStencilBuffer = b;
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            mod = Content.Load<Model>("gCrate");
-            i = Content.Load<Texture2D>("image");
+            mod = Content.Load<Model>("Models\\box");
+            //i = Content.Load<Texture2D>("image");
 
-            e = new BasicEffect(GraphicsDevice, null);
             foreach (ModelMesh mesh in mod.Meshes)
             {
                 foreach (ModelMeshPart p in mesh.MeshParts)
                 {
                     t = (p.Effect as BasicEffect).Texture; 
-                    p.Effect = e;
+                    //p.Effect = e;
                 }
             }
             t = new Texture2D(GraphicsDevice, 640, 480, 1, TextureUsage.None, GraphicsDevice.PresentationParameters.BackBufferFormat);
+
+
+            //Tower Defense stuff
+
+            CourierNew = Content.Load<SpriteFont>("CourierNew");
+
+            //Load all models used in sample
+            Model_Tower = Content.Load<Model>("Models\\box");
+            Model_Sphere = Content.Load<Model>("Models\\SphereHighPoly");
+            Model_Plane = Content.Load<Model>("Models\\plane");
+
+            //Load textures
+            Texture_Tower = Content.Load<Texture2D>("Models\\crate");
+            Texture_WhiteQuad = Content.Load<Texture2D>("Models\\whiteTex");
+
+            //We need to modify models texturing data, to create tiled texture, regarding
+            //of the size of our playfield - here i get vertex data, modify it, set it back to model:
+            VertexPositionNormalTexture[] Vertexs = new VertexPositionNormalTexture[4];
+            Model_Plane.Meshes[0].VertexBuffer.GetData<VertexPositionNormalTexture>(Vertexs);
+            for (int n = 0; n < Vertexs.Length; n += 1)
+            {
+                Vertexs[n].TextureCoordinate *= PlayfieldWidth;
+            }
+            Model_Plane.Meshes[0].VertexBuffer.SetData<VertexPositionNormalTexture>(Vertexs);
+
+            //Load the effect
+            effect = Content.Load<Effect>("Textured_Lit");
+
+            //I set effect parameters, that will not change here
+            effect.Parameters["lightPosition"].SetValue(new Vector3(80, 80, 80));
+            effect.Parameters["ambientLightColor"].SetValue(Color.Black.ToVector4());
+            effect.Parameters["diffuseLightColor"].SetValue(Color.White.ToVector4() * 0.2f);
+            effect.Parameters["specularLightColor"].SetValue(Color.White.ToVector4() * 0.2f);
+
+            effect.Parameters["specularPower"].SetValue(32);
+            effect.Parameters["specularIntensity"].SetValue(1.340f);
+
         }
 
         /// <summary>
@@ -129,6 +293,8 @@ namespace projAR
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            #region AR
+
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                 this.Exit();
@@ -145,7 +311,230 @@ namespace projAR
             //output the webcam
             t.SetData<byte>(w);
 
+            #endregion
+
+            #region TOWER DEFENSE STUFF
+
+            KBState_Prev = KBState_Current;
+            KBState_Current = Keyboard.GetState();
+
+            MSState_Prev = MSState_Current;
+            MSState_Current = Mouse.GetState();
+
+            if (pauseGame.ElapsedMilliseconds > 1000)
+            {
+                paused = false;
+                pauseGame.Reset();
+            }
+
+            camera.Update(elapsedTime, KBState_Current, MSState_Current, MSState_Prev, graphics.GraphicsDevice);
+
+            foreach (Tower tower in towers.Values)
+            {
+                int x = (int)tower.position.X;
+                int y = (int)tower.position.Y;
+                Point point = new Point((int)(x / TileWidth),(int) (y / TileWidth));
+
+                if (point.X >= -((float)PlayfieldWidth * 0.5) && point.Y >= -((float)PlayfieldWidth / 2) && point.X < (float)PlayfieldWidth / 2 && point.Y < (float)PlayfieldWidth / 2)
+                {
+                    if (money >= 10)
+                    {
+                        point.X += (PlayfieldWidth / 2);
+                        point.Y += (PlayfieldWidth / 2);
+                        if (Towers[point.X, point.Y] == 1)
+                        {
+                            Towerz[point.X, point.Y].dead = 0;
+                            Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
+                            Towers[point.X, point.Y] = 0;
+                            money -= 10;
+
+                            foreach (Enemy enemey in enemies)
+                            {
+                                if (enemey != null)
+                                {
+                                    MoveEnemy(enemey, new Point((int)(enemey.PositionCurrent.X / TileWidth), (int)(enemey.PositionCurrent.Y / TileWidth)));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(KBState_Current.IsKeyDown(Keys.Back))
+            {
+                drawgrid = !drawgrid;
+            }
+
+            //Add or Remove walls
+            if (MSState_Current.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
+            {
+                added = true;
+            }
+            if (MSState_Current.LeftButton == ButtonState.Released)
+            {
+                if (added == true)
+                {
+                    Click = GetCollision();
+                    added = false;
+
+                    Point point = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
+
+                    if (point.X >= -((float)PlayfieldWidth * 0.5) && point.Y >= -((float)PlayfieldWidth / 2) && point.X < (float)PlayfieldWidth / 2 && point.Y < (float)PlayfieldWidth / 2)
+                    {
+                        if (money >= 10)
+                        {
+                            point.X += (PlayfieldWidth / 2);
+                            point.Y += (PlayfieldWidth / 2);
+                            if (Towers[point.X, point.Y] == 1)
+                            {
+                                Towerz[point.X, point.Y].dead = 0;
+                                Towerz[point.X, point.Y].position = new Vector3((float)point.X, (float)point.Y, 0.0f);
+                                Towers[point.X, point.Y] = 0;
+                                money -= 10;
+
+                                foreach (Enemy enemey in enemies)
+                                {
+                                    if (enemey != null)
+                                    {
+                                        MoveEnemy(enemey, new Point((int)(enemey.PositionCurrent.X / TileWidth), (int)(enemey.PositionCurrent.Y / TileWidth)));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (MSState_Current.RightButton == ButtonState.Pressed)
+            {
+                removed = true;
+            }
+            if (MSState_Current.RightButton == ButtonState.Released)
+            {
+                if (removed == true)
+                {
+                    Click = GetCollision();
+                    removed = false;
+
+                    Point point = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
+
+                    if (point.X >= -((float)PlayfieldWidth*0.5) && point.Y >= -((float)PlayfieldWidth / 2) && point.X < (float)PlayfieldWidth/2 && point.Y < (float)PlayfieldWidth/2)
+                    {
+                        point.X += (PlayfieldWidth / 2);
+                        point.Y += (PlayfieldWidth / 2);
+                        if (Towers[point.X, point.Y] == 0)
+                        {
+                            Towerz[point.X, point.Y].dead = 1;
+                            Towers[point.X, point.Y] = 1;
+                            money += 10;
+                        }
+
+                    }
+                }
+            }
+
+            //Respawn enemies !!
+            if (paused == false)
+            {
+                if (respawnTime.ElapsedMilliseconds > 3000)
+                {
+                    for (int i = 0; i < enemies.Length; i++)
+                    {
+                        if (enemies[i] == null)
+                        {
+                            enemies[i] = new Enemy(new Vector2(spawnPoint.X, spawnPoint.Y) * 10);
+                            MoveEnemy(enemies[i], spawnPoint);
+                            respawnTime.Reset();
+                            respawnTime.Start();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //Update enemies and it's mesh position
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                if (enemies[i] != null)
+                {
+                    if (enemies[i].alive == false)
+                    {
+                        enemies[i] = null;
+                        score += 5;
+                        money += 5;
+                        break;
+                    }
+                    enemies[i].Update(elapsedTime);
+                    if (enemies[i].finished == true)
+                    {
+                        enemies[i] = null;
+                        lives--;
+                    }
+                }
+            }
+
+
+            //Run the tower methods
+            foreach (Tower tower in Towerz)
+            {
+                tower.FindTarget(enemies);
+                tower.Shoot();
+                if (tower.bullet != null)
+                {
+                    tower.bullet.Move();
+                }
+            }
+
+            #endregion 
+
             base.Update(gameTime);
+        }
+
+        private void MoveEnemy(Enemy e, Point start)
+        {
+            Point Start = start;  //new Point(((int)(e.PositionCurrent.X / (int)TileWidth)), ((int)(e.PositionCurrent.Y / (int)TileWidth)));
+            Point End = endPoint;  // new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
+
+            if (Start == End)
+                e.LinearMove(e.PositionCurrent / TileWidth, new Vector2(End.X * TileWidth, End.Y * TileWidth));
+            else
+            {
+                List<PathReturnNode> foundPath1 = myPathFinder.FindPath(Start, End);
+                if (foundPath1 != null)
+                    e.PathMove(ref foundPath1, e.PositionCurrent, new Vector2(End.X * TileWidth + 5, End.Y * TileWidth + 9));
+            }
+
+        }
+
+        private bool IsKeyPush(Microsoft.Xna.Framework.Input.Keys key)
+        {
+            if (KBState_Current.IsKeyDown(key) && KBState_Prev.IsKeyUp(key))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public Vector3 GetCollision()
+        {
+            Vector3 startC = new Vector3(MSState_Current.X, MSState_Current.Y, 0.0f);
+            Vector3 endC = new Vector3(MSState_Current.X, MSState_Current.Y, 4096.0f);
+
+            Vector3 nearPoint = graphics.GraphicsDevice.Viewport.Unproject(startC,
+                projection, view, orientation);
+
+            Vector3 farPoint = graphics.GraphicsDevice.Viewport.Unproject(endC,
+                projection, view, orientation);
+
+            Vector3 rayDirection = Vector3.Normalize(farPoint - nearPoint);
+            float cosAlpha = Vector3.Dot(Vector3.UnitZ, rayDirection);
+            float deltaD = Vector3.Dot(Vector3.UnitZ, nearPoint);
+
+            float distance = deltaD / cosAlpha;
+
+            return nearPoint - (rayDirection * distance);
         }
 
         /// <summary>
@@ -154,10 +543,12 @@ namespace projAR
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin();
-            spriteBatch.Draw(t, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
-            spriteBatch.End();
+            graphics.GraphicsDevice.Clear(ClearOptions.DepthBuffer | ClearOptions.Stencil | ClearOptions.Target,
+                Color.White, 1, 0);
+            spriteBatch.Begin();//(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+            
+
+            #region AR
 
             #region AR Ghosting
             if (ARMarkers != null)
@@ -194,19 +585,43 @@ namespace projAR
             }
             #endregion
 
+            GraphicsDevice.RenderState.StencilEnable = true;
+            GraphicsDevice.RenderState.StencilPass = StencilOperation.Increment;
+
             //now to draw the markers
             foreach (MyMarkerInfo mmi in ARMarkers.Values)
             {
                 //is this marker set to be drawn?
                 if (mmi.draw)
                 {
-                    //System.Diagnostics.Debug.WriteLine(mmi.transform.Translation);
-                    e.World = Matrix.CreateScale(4.0f)*Matrix.CreateTranslation(mmi.transform.Translation);//Matrix.Identity;
-                    e.View = Matrix.Identity;
-                    e.DiffuseColor = Color.Purple.ToVector3();
-                    e.Texture = t;
-                    e.TextureEnabled = false;
-                    e.Projection = projection;
+                    ////System.Diagnostics.Debug.WriteLine(mmi.transform.Translation);
+                    world = mmi.transform;//Matrix.Identity;
+                    view = Matrix.Identity;
+                    //e.DiffuseColor = Color.Purple.ToVector3();
+                    //e.Texture = t;
+                    //e.TextureEnabled = false;
+
+                    System.Diagnostics.Debug.WriteLine(mmi.markerInfo.id.ToString());
+                    //base marker
+                    if (mmi.markerInfo.id.ToString() == "484")
+                    {
+                        camera.mView = view;
+                        camera.mProjection = projection;
+                        orientation = world;
+                    }
+                    else
+                    //towers
+                    {
+                        //if we have seen this tower before
+                        if (towers.ContainsKey(mmi.markerInfo.id))
+                        {
+                            towers[mmi.markerInfo.id].postitionMatrix = mmi.transform;
+                        }
+                        else
+                        {
+                            towers.Add(mmi.markerInfo.id, new Tower(mmi.transform));
+                        }
+                    }
 
                     foreach (ModelMesh m in mod.Meshes)
                     {
@@ -215,7 +630,256 @@ namespace projAR
                 }
             }
 
+            #endregion
+
+            #region TOWER DEFENSE
+
+            //Set effect parameters
+            effect.Parameters["view"].SetValue(camera.mView);
+            effect.Parameters["projection"].SetValue(camera.mProjection);
+            effect.Parameters["cameraPosition"].SetValue(camera.vecPosition);
+
+            //Draw ground plane
+            effect.Parameters["xTexture0"].SetValue(Texture_Tower);
+            int Scale = PlayfieldWidth * (int)TileWidth;
+
+            //World transformation of the Grid - Will get from the AR marker
+            //orientation = Matrix.CreateRotationX((float)gameTime.TotalRealTime.TotalMilliseconds / 2000.0f)*orientation  ;
+            //PlaneMatrix = Matrix.CreateScale(Scale) *  Matrix.CreateTranslation(new Vector3(Scale / 2, Scale / 2, 0)) * Matrix.CreateRotationZ(MathHelper.ToRadians(180.0f)) * orientation;
+            PlaneMatrix = Matrix.CreateScale(Scale) * orientation;
+
+            effect.Parameters["world"].SetValue(PlaneMatrix);
+            GraphicsDevice.RenderState.CullMode = CullMode.None;
+            GraphicsDevice.RenderState.DepthBufferEnable = true;
+
+
+            effect.Parameters["emmissive"].SetValue(Color.White.ToVector4() * 0.4f);
+            //GraphicsDevice.RenderState.CullMode = CullMode.CullClockwiseFace;
+            if (drawgrid)
+            {
+                DrawSampleMesh(Model_Plane);
+            }
+
+            //Draw walls
+            GraphicsDevice.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
+            effect.Parameters["emmissive"].SetValue(Color.White.ToVector4() * 0.8f);
+            effect.Parameters["xTexture0"].SetValue(Texture_Tower);
+            DrawBoxArray(Model_Tower);
+
+            //Draw character
+            foreach (Enemy enemy in enemies)
+            {
+                if (enemy != null)
+                {
+                    effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
+                    effect.Parameters["world"].SetValue(enemy.matrix * orientation);
+
+                    Vector3 green = Color.Green.ToVector3();
+                    Vector3 red = Color.Red.ToVector3();
+                    Vector3 color = Vector3.Lerp(green, red, 1.0f - enemy.hp / Enemy.MAX_HP);
+                    color.Normalize();
+
+                    effect.Parameters["emmissive"].SetValue(new Color(color).ToVector4());
+                    DrawSampleMesh(Model_Sphere);
+                }
+            }
+
+            //Draw bullets
+            foreach (Tower tower in Towerz)
+            {
+                if (tower.bullet != null)
+                {
+                    effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
+                    effect.Parameters["world"].SetValue(tower.bullet.matrix * orientation);
+                    effect.Parameters["emmissive"].SetValue(Color.Red.ToVector4());
+
+                    DrawSampleMesh(Model_Sphere);
+                }
+            }
+
+            //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
+            spriteBatch.DrawString(CourierNew, "Lives:  " + lives, new Vector2(10, 0), Color.White);
+            spriteBatch.DrawString(CourierNew, "Score:  " + score, new Vector2(160, 0), Color.White);
+            spriteBatch.DrawString(CourierNew, "Money:  $" + money, new Vector2(310, 0), Color.White);
+            if (paused == true)
+                spriteBatch.DrawString(CourierNew, "Time till start:  " + (15 - pauseGame.ElapsedMilliseconds / 1000) + "s", new Vector2(550, 0), Color.White);
+            spriteBatch.DrawString(CourierNew, "Left click to make a tower (- $10). Right click to sell a tower (+ $10)", new Vector2(10, 30), Color.White);
+            spriteBatch.End();
+
+            #endregion
+            spriteBatch.Begin(SpriteBlendMode.None, SpriteSortMode.Immediate, SaveStateMode.SaveState);
+            graphics.GraphicsDevice.RenderState.StencilFunction = CompareFunction.Equal;
+            graphics.GraphicsDevice.RenderState.ReferenceStencil = 0;
+            spriteBatch.Draw(t, new Rectangle(
+                0,
+                0,
+                GraphicsDevice.Viewport.Width,
+                GraphicsDevice.Viewport.Height), new Color(255, 255, 255, 255));
+
+            spriteBatch.End();
+
             base.Draw(gameTime);
+        }
+
+        public void DrawBoxArray(Model sampleMesh)
+        {
+            if (sampleMesh == null)
+                return;
+
+            //our sample meshes only contain a single part, so we don't need to bother
+            //looping over the ModelMesh and ModelMeshPart collections. If the meshes
+            //were more complex, we would repeat all the following code for each part
+            ModelMesh mesh = sampleMesh.Meshes[0];
+            ModelMeshPart meshPart = mesh.MeshParts[0];
+
+            //set the vertex source to the mesh's vertex buffer
+            graphics.GraphicsDevice.Vertices[0].SetSource(
+                mesh.VertexBuffer, meshPart.StreamOffset, meshPart.VertexStride);
+
+            //set the vertex delclaration
+            graphics.GraphicsDevice.VertexDeclaration = meshPart.VertexDeclaration;
+
+            //set the current index buffer to the sample mesh's index buffer
+            graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+
+            // set the current technique based on the user selection
+            effect.CurrentTechnique = effect.Techniques["Pixel_Diffuse_Pixel_Phong"];
+
+            //at this point' we're ready to begin drawing
+            //To start using any effect, you must call Effect.Begin
+            //to start using the current technique (set in LoadGraphicsContent)
+
+            for (int y = 0; y < PlayfieldWidth; y += 1)
+            {
+                for (int x = 0; x < PlayfieldWidth; x += 1)
+                {
+                    if (Towerz[x, y].dead == 0)
+                    {
+                        #region render tower stuff
+                        effect.Parameters["world"].SetValue(Matrix.CreateScale(5) * TowerMatrixs[x, y] * orientation);
+
+                        effect.Begin(SaveStateMode.SaveState);
+                        //now we loop through the passes in the teqnique, drawing each
+                        //one in order
+                        for (int i = 0; i < effect.CurrentTechnique.Passes.Count; i++)
+                        {
+                            //EffectPass.Begin will update the device to
+                            //begin using the state information defined in the current pass
+                            effect.CurrentTechnique.Passes[i].Begin();
+
+                            //sampleMesh contains all of the information required to draw
+                            //the current mesh       
+                            //GraphicsDevice.RenderState.AlphaBlendEnable = false;
+                            //GraphicsDevice.RenderState.AlphaTestEnable = false;
+                            //GraphicsDevice.RenderState.DepthBufferEnable = true;
+                            graphics.GraphicsDevice.DrawIndexedPrimitives(
+                                PrimitiveType.TriangleList, meshPart.BaseVertex, 0,
+                                meshPart.NumVertices, meshPart.StartIndex, meshPart.PrimitiveCount);
+
+                            //EffectPass.End must be called when the effect is no longer needed
+                            effect.CurrentTechnique.Passes[i].End();
+                        }
+
+
+                        //Likewise, Effect.End will end the current technique
+                        effect.End();
+                        #endregion
+                    }
+
+                }
+            }
+
+            //for (int y = 0; y < PlayfieldWidth; y += 1)
+            //{
+            //    for (int x = 0; x < PlayfieldWidth; x += 1)
+            //    {
+            //        if (Towerz[x, y].dead == 0)
+            //        {
+            //            #region render tower stuff
+            //            effect.Parameters["world"].SetValue(TowerMatrixs[x, y] *  orientation  );
+
+            //            effect.Begin(SaveStateMode.SaveState);
+            //            //now we loop through the passes in the teqnique, drawing each
+            //            //one in order
+            //            for (int i = 0; i < effect.CurrentTechnique.Passes.Count; i++)
+            //            {
+            //                //EffectPass.Begin will update the device to
+            //                //begin using the state information defined in the current pass
+            //                effect.CurrentTechnique.Passes[i].Begin();
+
+            //                //sampleMesh contains all of the information required to draw
+            //                //the current mesh       
+            //                //GraphicsDevice.RenderState.AlphaBlendEnable = false;
+            //                //GraphicsDevice.RenderState.AlphaTestEnable = false;
+            //                //GraphicsDevice.RenderState.DepthBufferEnable = true;
+            //                graphics.GraphicsDevice.DrawIndexedPrimitives(
+            //                    PrimitiveType.TriangleList, meshPart.BaseVertex, 0,
+            //                    meshPart.NumVertices, meshPart.StartIndex, meshPart.PrimitiveCount);
+
+            //                //EffectPass.End must be called when the effect is no longer needed
+            //                effect.CurrentTechnique.Passes[i].End();
+            //            }
+                        
+
+            //            //Likewise, Effect.End will end the current technique
+            //            effect.End();
+            //            #endregion
+            //        }
+
+            //    }
+            //}
+        }
+        public void DrawSampleMesh(Model sampleMesh)
+        {
+            if (sampleMesh == null)
+                return;
+
+            //our sample meshes only contain a single part, so we don't need to bother
+            //looping over the ModelMesh and ModelMeshPart collections. If the meshes
+            //were more complex, we would repeat all the following code for each part
+            ModelMesh mesh = sampleMesh.Meshes[0];
+            ModelMeshPart meshPart = mesh.MeshParts[0];
+
+            //set the vertex source to the mesh's vertex buffer
+            graphics.GraphicsDevice.Vertices[0].SetSource(
+                mesh.VertexBuffer, meshPart.StreamOffset, meshPart.VertexStride);
+
+            //set the vertex delclaration
+            graphics.GraphicsDevice.VertexDeclaration = meshPart.VertexDeclaration;
+
+            //set the current index buffer to the sample mesh's index buffer
+            graphics.GraphicsDevice.Indices = mesh.IndexBuffer;
+
+            // set the current technique based on the user selection
+            effect.CurrentTechnique = effect.Techniques["Pixel_Diffuse_Pixel_Phong"];
+
+            //at this point' we're ready to begin drawing
+            //To start using any effect, you must call Effect.Begin
+            //to start using the current technique (set in LoadGraphicsContent)
+
+            effect.Begin(SaveStateMode.None);
+
+            //now we loop through the passes in the teqnique, drawing each
+            //one in order
+            for (int i = 0; i < effect.CurrentTechnique.Passes.Count; i++)
+            {
+                //EffectPass.Begin will update the device to
+                //begin using the state information defined in the current pass
+                effect.CurrentTechnique.Passes[i].Begin();
+
+                //sampleMesh contains all of the information required to draw
+                //the current mesh       
+
+                graphics.GraphicsDevice.DrawIndexedPrimitives(
+                    PrimitiveType.TriangleList, meshPart.BaseVertex, 0,
+                    meshPart.NumVertices, meshPart.StartIndex, meshPart.PrimitiveCount);
+
+                //EffectPass.End must be called when the effect is no longer needed
+                effect.CurrentTechnique.Passes[i].End();
+            }
+
+            //Likewise, Effect.End will end the current technique
+            effect.End();
         }
 
         protected override void OnExiting(object sender, EventArgs args)
