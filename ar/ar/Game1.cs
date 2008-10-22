@@ -63,7 +63,7 @@ namespace projAR
         private const int PlayfieldWidth = 12;
 
         //Width of one playfield tile
-        private const float TileWidth = 50.0f;
+        private const float TileWidth = 20.0f;
 
         //Our movement restriction information array - 0 - cant move there - Any other positive value - Move penality
         private byte[,] Towers;
@@ -184,8 +184,8 @@ namespace projAR
             lives = 10;
             money = 99999999;
 
-            spawnPoint = new Point((int)(PlayfieldWidth / 2), 0);
-            endPoint = new Point((int)(PlayfieldWidth / 2), PlayfieldWidth - 1);
+            spawnPoint = new Point(0, (int)(PlayfieldWidth / 2));
+            endPoint = new Point(PlayfieldWidth, (int)(PlayfieldWidth / 2));
             respawnTime = new Stopwatch();
             respawnTime.Start();
 
@@ -441,7 +441,7 @@ namespace projAR
                     {
                         if (enemies[i] == null)
                         {
-                            enemies[i] = new Enemy(new Vector2(spawnPoint.X, spawnPoint.Y) * 10);
+                            enemies[i] = new Enemy(new Vector2(spawnPoint.X, spawnPoint.Y) * TileWidth);
                             MoveEnemy(enemies[i], spawnPoint);
                             respawnTime.Reset();
                             respawnTime.Start();
@@ -672,7 +672,7 @@ namespace projAR
                 if (enemy != null)
                 {
                     effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
-                    effect.Parameters["world"].SetValue(enemy.matrix * orientation);
+                    effect.Parameters["world"].SetValue(Matrix.CreateScale(2)*enemy.matrix * orientation);
 
                     Vector3 green = Color.Green.ToVector3();
                     Vector3 red = Color.Red.ToVector3();
@@ -756,7 +756,7 @@ namespace projAR
                     if (Towerz[x, y].dead == 0)
                     {
                         #region render tower stuff
-                        effect.Parameters["world"].SetValue(Matrix.CreateScale(5) * TowerMatrixs[x, y] * orientation);
+                        effect.Parameters["world"].SetValue(Matrix.CreateScale(2) * TowerMatrixs[x, y] * orientation);
 
                         effect.Begin(SaveStateMode.SaveState);
                         //now we loop through the passes in the teqnique, drawing each

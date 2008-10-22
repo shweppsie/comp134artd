@@ -265,7 +265,7 @@ namespace TowerDefence3D
                             positionCurrent = positionDestination;
                         }
                     }
-                    matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X * 10, positionCurrent.Y * 10, 4.0f);
+                    matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X, positionCurrent.Y, 25f);
                     break;
                 case MovingType.PathSmooth:
                     {
@@ -286,7 +286,7 @@ namespace TowerDefence3D
                             StopMoving();
                         }
                     }
-                    matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X, positionCurrent.Y, 4.0f);
+                    matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X, positionCurrent.Y, 5f);
                     break;
             }
         }
