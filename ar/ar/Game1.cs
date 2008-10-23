@@ -54,10 +54,12 @@ namespace projAR
         Texture2D t;
         Texture2D i;
         Dictionary<int, Tower> towers;
+        #region towerdefense
 
         //Tower defence stuff
 
         SpriteFont CourierNew;
+        SpriteFont CourierNew2;
 
         //Width of "playfield"
         private const int PlayfieldWidth = 12;
@@ -109,7 +111,7 @@ namespace projAR
 
         //Game pausing stopwatch
         Stopwatch pauseGame;
-        bool paused;
+        bool paused, gameover;
 
         bool added;
         bool removed;
@@ -125,6 +127,9 @@ namespace projAR
         const int height = 480;
 
         bool drawgrid = true;
+        Vector3 startTxt;
+
+        #endregion
 
         public Game1()
         {
@@ -172,17 +177,19 @@ namespace projAR
             Towerz = new Tower[PlayfieldWidth, PlayfieldWidth];
             TowerMatrixs = new Matrix[PlayfieldWidth, PlayfieldWidth];
             enemies = new Enemy[20];
+            //startTxt = Matrix.Identity;
 
             pauseGame = new Stopwatch();
             pauseGame.Start();
             paused = true;
+            gameover = false;
 
             added = false;
             removed = false;
 
             score = 0;
-            lives = 10;
-            money = 99999999;
+            lives = 2;
+            money = 100;
 
             spawnPoint = new Point(PlayfieldWidth / 2, 0);
             endPoint = new Point(PlayfieldWidth / 2, 11);
@@ -241,7 +248,7 @@ namespace projAR
 
 
             //Tower Defense stuff
-
+            CourierNew2 = Content.Load<SpriteFont>("CourierNew2");
             CourierNew = Content.Load<SpriteFont>("CourierNew");
 
             //Load all models used in sample
@@ -323,7 +330,7 @@ namespace projAR
             MSState_Prev = MSState_Current;
             MSState_Current = Mouse.GetState();
 
-            if (pauseGame.ElapsedMilliseconds > 1000)
+            if (pauseGame.ElapsedMilliseconds > 15000)
             {
                 paused = false;
                 pauseGame.Reset();
@@ -362,23 +369,17 @@ namespace projAR
                 }
             }
 
-            if(KBState_Current.IsKeyDown(Keys.Back))
-            {
-                drawgrid = !drawgrid;
-            }
-
             Click = GetCollision();
             Vector3 Click2 = new Vector3(Click.X + (PlayfieldWidth * TileWidth)/2, Click.Y + (PlayfieldWidth * TileWidth)/2,0);
-            System.Diagnostics.Debug.WriteLine(Click2);
 
-            //Add or Remove walls
+            //Code to add towers
             if (MSState_Current.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
             {
                 added = true;
             }
             if (MSState_Current.LeftButton == ButtonState.Released)
             {
-                if (added == true)
+                if (added == true && gameover == false)
                 {
                     Click = GetCollision();
                     added = false;
@@ -411,6 +412,8 @@ namespace projAR
                     }
                 }
             }
+
+            //Code for the selling of a tower
             if (MSState_Current.RightButton == ButtonState.Pressed)
             {
                 removed = true;
@@ -440,8 +443,28 @@ namespace projAR
                 }
             }
 
+            if (KBState_Current.IsKeyDown(Keys.R) && gameover == true)
+            {
+                gameover = false;
+                lives = 20;
+                money = 100;
+                score = 0;
+                enemies = new Enemy[20];
+                paused = true;
+                pauseGame.Start();
+                for (int y = 0; y < PlayfieldWidth; y++)
+                {
+                    for (int x = 0; x < PlayfieldWidth; x++)
+                    {
+                        Towers[x, y] = 1;
+                        Towerz[x, y] = new Tower(Vector3.Zero);
+                        TowerMatrixs[x, y] = Matrix.CreateTranslation(new Vector3(x * TileWidth + (TileWidth / 2) - (PlayfieldWidth * TileWidth / 2), y * TileWidth + (TileWidth / 2) - (PlayfieldWidth * TileWidth / 2), 0.0f));
+                    }
+                }
+            }
+
             //Respawn enemies !!
-            if (paused == false)
+            if (paused == false && gameover == false)
             {
                 if (respawnTime.ElapsedMilliseconds > 3000)
                 {
@@ -490,6 +513,13 @@ namespace projAR
                 {
                     tower.bullet.Move();
                 }
+            }
+
+            //checking the losing condition
+            if (lives < 0)
+            {
+                lives = 0;
+                gameover = true;
             }
 
             #endregion 
@@ -611,7 +641,7 @@ namespace projAR
 
                     System.Diagnostics.Debug.WriteLine(mmi.markerInfo.id.ToString());
                     //base marker
-                    if (mmi.markerInfo.id.ToString() == "495")
+                    if (mmi.markerInfo.id.ToString() == "499")
                     {
                         camera.mView = view;
                         camera.mProjection = projection;
@@ -692,26 +722,36 @@ namespace projAR
                 }
             }
 
+            
             //Draw bullets
             foreach (Tower tower in Towerz)
             {
                 if (tower.bullet != null)
                 {
                     effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
-                    effect.Parameters["world"].SetValue(tower.bullet.matrix * Matrix.CreateTranslation(-(PlayfieldWidth * TileWidth) / 2, -(PlayfieldWidth * TileWidth) / 2, 0) * orientation);
+                    effect.Parameters["world"].SetValue(tower.bullet.matrix * Matrix.CreateTranslation(-(PlayfieldWidth * TileWidth) / 2, -(PlayfieldWidth * TileWidth)/2, 0) * orientation);
                     effect.Parameters["emmissive"].SetValue(Color.Red.ToVector4());
 
                     DrawSampleMesh(Model_Sphere);
                 }
             }
 
+            //startTxt = Matrix.CreateTranslation(new Vector3(spawnPoint.X * 20, spawnPoint.Y * 20, 0)) * orientation;
+            startTxt = GraphicsDevice.Viewport.Project(new Vector3(0, -(PlayfieldWidth/2 * TileWidth) - 25, 0), projection, view,  world);
+
             //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
             spriteBatch.DrawString(CourierNew, "Lives:  " + lives, new Vector2(10, 0), Color.White);
             spriteBatch.DrawString(CourierNew, "Score:  " + score, new Vector2(160, 0), Color.White);
             spriteBatch.DrawString(CourierNew, "Money:  $" + money, new Vector2(310, 0), Color.White);
+            spriteBatch.DrawString(CourierNew, "Start", new Vector2(startTxt.X, startTxt.Y),Color.Green);
             if (paused == true)
                 spriteBatch.DrawString(CourierNew, "Time till start:  " + (15 - pauseGame.ElapsedMilliseconds / 1000) + "s", new Vector2(550, 0), Color.White);
             spriteBatch.DrawString(CourierNew, "Left click to make a tower (- $10). Right click to sell a tower (+ $10)", new Vector2(10, 30), Color.White);
+            if (gameover == true)
+            {
+                spriteBatch.DrawString(CourierNew2, "Game Over", new Vector2(400, 350), Color.White);
+                spriteBatch.DrawString(CourierNew, "Press 'R' to restart..", new Vector2(380, 400), Color.White);
+            }
             spriteBatch.End();
 
             #endregion

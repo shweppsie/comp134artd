@@ -85,7 +85,7 @@ namespace TowerDefence3D
                         if (watch.ElapsedMilliseconds > 750)
                         {
                             //shoot
-                            Vector3 middle = new Vector3(position.X * 10 + 5, position.Y * 10 + 5, 0);
+                            Vector3 middle = new Vector3(position.X * 20 + 5, position.Y * 20 + 5, 0);
                             bullet = new Bullet(middle, new Vector3(target.PositionCurrent,0), this);
                             watch.Reset();
                         }
