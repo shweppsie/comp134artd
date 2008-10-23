@@ -184,8 +184,8 @@ namespace projAR
             lives = 10;
             money = 99999999;
 
-            spawnPoint = new Point(0, (int)(PlayfieldWidth / 2));
-            endPoint = new Point(PlayfieldWidth, (int)(PlayfieldWidth / 2));
+            spawnPoint = new Point(PlayfieldWidth / 2, 0);
+            endPoint = new Point(PlayfieldWidth / 2, 11);
             respawnTime = new Stopwatch();
             respawnTime.Start();
 
@@ -197,7 +197,7 @@ namespace projAR
                 {
                     Towers[x, y] = 1;
                     Towerz[x, y] = new Tower(Vector3.Zero);
-                    TowerMatrixs[x, y] = Matrix.CreateTranslation(new Vector3(x * TileWidth + 5 - (PlayfieldWidth * TileWidth / 2), y * TileWidth + 5 - (PlayfieldWidth * TileWidth / 2), 0.0f));
+                    TowerMatrixs[x, y] = Matrix.CreateTranslation(new Vector3(x * TileWidth + (TileWidth / 2) - (PlayfieldWidth * TileWidth / 2), y * TileWidth + (TileWidth / 2) - (PlayfieldWidth * TileWidth / 2), 0.0f));
                 }
             }
 
@@ -293,6 +293,8 @@ namespace projAR
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            elapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             #region AR
 
             // Allows the game to exit
@@ -365,6 +367,10 @@ namespace projAR
                 drawgrid = !drawgrid;
             }
 
+            Click = GetCollision();
+            Vector3 Click2 = new Vector3(Click.X + (PlayfieldWidth * TileWidth)/2, Click.Y + (PlayfieldWidth * TileWidth)/2,0);
+            System.Diagnostics.Debug.WriteLine(Click2);
+
             //Add or Remove walls
             if (MSState_Current.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
             {
@@ -377,14 +383,15 @@ namespace projAR
                     Click = GetCollision();
                     added = false;
 
-                    Point point = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
+                    Point point = new Point((int)(Click2.X / (float)TileWidth), (int)(Click2.Y / (float)TileWidth));
 
-                    if (point.X >= -((float)PlayfieldWidth * 0.5) && point.Y >= -((float)PlayfieldWidth / 2) && point.X < (float)PlayfieldWidth / 2 && point.Y < (float)PlayfieldWidth / 2)
+                    //if (point.X >= -((float)PlayfieldWidth * 0.5) && point.Y >= -((float)PlayfieldWidth / 2) && point.X < (float)PlayfieldWidth / 2 && point.Y < (float)PlayfieldWidth / 2)
+                    if (point.X >= 0 && point.Y >= 0 && point.X < PlayfieldWidth && point.Y < PlayfieldWidth)
                     {
                         if (money >= 10)
                         {
-                            point.X += (PlayfieldWidth / 2);
-                            point.Y += (PlayfieldWidth / 2);
+                            //point.X += (PlayfieldWidth / 2);
+                            //point.Y += (PlayfieldWidth / 2);
                             if (Towers[point.X, point.Y] == 1)
                             {
                                 Towerz[point.X, point.Y].dead = 0;
@@ -415,12 +422,13 @@ namespace projAR
                     Click = GetCollision();
                     removed = false;
 
-                    Point point = new Point(((int)Click.X) / (int)TileWidth, ((int)Click.Y) / (int)TileWidth);
+                    Point point = new Point(((int)Click2.X) / (int)TileWidth, ((int)Click2.Y) / (int)TileWidth);
 
-                    if (point.X >= -((float)PlayfieldWidth*0.5) && point.Y >= -((float)PlayfieldWidth / 2) && point.X < (float)PlayfieldWidth/2 && point.Y < (float)PlayfieldWidth/2)
+                    //if (point.X >= -((float)PlayfieldWidth * 0.5) && point.Y >= -((float)PlayfieldWidth / 2) && point.X < (float)PlayfieldWidth / 2 && point.Y < (float)PlayfieldWidth / 2)
+                    if (point.X >= 0 && point.Y >= 0 && point.X < PlayfieldWidth && point.Y < PlayfieldWidth)
                     {
-                        point.X += (PlayfieldWidth / 2);
-                        point.Y += (PlayfieldWidth / 2);
+                        //point.X += (PlayfieldWidth / 2);
+                        //point.Y += (PlayfieldWidth / 2);
                         if (Towers[point.X, point.Y] == 0)
                         {
                             Towerz[point.X, point.Y].dead = 1;
@@ -461,7 +469,7 @@ namespace projAR
                         enemies[i] = null;
                         score += 5;
                         money += 5;
-                        break;
+                        continue;
                     }
                     enemies[i].Update(elapsedTime);
                     if (enemies[i].finished == true)
@@ -603,7 +611,7 @@ namespace projAR
 
                     System.Diagnostics.Debug.WriteLine(mmi.markerInfo.id.ToString());
                     //base marker
-                    if (mmi.markerInfo.id.ToString() == "484")
+                    if (mmi.markerInfo.id.ToString() == "495")
                     {
                         camera.mView = view;
                         camera.mProjection = projection;
@@ -672,7 +680,7 @@ namespace projAR
                 if (enemy != null)
                 {
                     effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
-                    effect.Parameters["world"].SetValue(Matrix.CreateScale(2)*enemy.matrix * orientation);
+                    effect.Parameters["world"].SetValue(Matrix.CreateScale(2)*enemy.matrix * Matrix.CreateTranslation(-(PlayfieldWidth*TileWidth)/2,-(PlayfieldWidth*TileWidth)/2,0) * orientation);
 
                     Vector3 green = Color.Green.ToVector3();
                     Vector3 red = Color.Red.ToVector3();
@@ -690,7 +698,7 @@ namespace projAR
                 if (tower.bullet != null)
                 {
                     effect.Parameters["xTexture0"].SetValue(Texture_WhiteQuad);
-                    effect.Parameters["world"].SetValue(tower.bullet.matrix * orientation);
+                    effect.Parameters["world"].SetValue(tower.bullet.matrix * Matrix.CreateTranslation(-(PlayfieldWidth * TileWidth) / 2, -(PlayfieldWidth * TileWidth) / 2, 0) * orientation);
                     effect.Parameters["emmissive"].SetValue(Color.Red.ToVector4());
 
                     DrawSampleMesh(Model_Sphere);

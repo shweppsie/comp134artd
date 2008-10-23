@@ -164,7 +164,7 @@ namespace projAR
                 //set up matrices
                 //Matrix wpfModelViewMatrix = ArManWrap.GetXNAMatrixFromOpenGl(modelViewMatrix);
                 finalprojMatrix = convert(projmatrix);
-                finalmodelMatrix = convert(modelViewMatrix);
+                finalmodelMatrix = Matrix.Identity;// convert(modelViewMatrix);
                 //ArManWrap.GetXNAMatrixFromOpenGl(projMatrix);
 
                 //markers to check
@@ -243,16 +243,18 @@ namespace projAR
                 {
                     mmi = new MyMarkerInfo();
                     dicMarkerInfos.Add(armi.id, mmi);
-                    retTransMat = ArManWrap.ARTKPGetTransMat(tracker, markerInfos, center, width, matrix);
-                    //ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);
+                    //retTransMat = ArManWrap.ARTKPGetTransMat(tracker, markerInfos, center, width, matrix);
+                    ArManWrap.ARTKPGetModelViewMatrix(tracker, matrix);
                 }
                 Marshal.Release(markerInfos);
                 mmi.found = true;
                 mmi.notFoundCount = 0;
                 mmi.markerInfo = armi;
                 mmi.prevMatrix = matrix;
-                Matrix tmp = ArManWrap.GetXNAMatrixFromOpenGl12(matrix);
-                tmp.M43 = -tmp.M43;
+                Matrix tmp = convert(matrix);
+                    
+                    //ArManWrap.GetXNAMatrixFromOpenGl12(matrix);
+               // tmp.M43 = -tmp.M43;
                 mmi.transform = tmp;
                 //TODO
                 //Matrix m = convert(matrix);

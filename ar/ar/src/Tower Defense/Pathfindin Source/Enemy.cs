@@ -75,7 +75,7 @@ namespace TowerDefence3D
             curveX = new Curve();
             curveY = new Curve();
 
-            matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X, positionCurrent.Y, 4.0f);
+            matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X - 120, positionCurrent.Y - 120, 4.0f);
 
             hp = 20;
             alive = true;

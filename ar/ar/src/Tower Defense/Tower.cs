@@ -52,7 +52,7 @@ namespace TowerDefence3D
                     foreach (Enemy e in enemies)
                     {
                         if (e != null)
-                            if (range.Contains(new Point((int)e.PositionCurrent.X/10, (int)e.PositionCurrent.Y/10)))
+                            if (range.Contains(new Point((int)e.PositionCurrent.X/20, (int)e.PositionCurrent.Y/20)))
                             {
                                 target = e;
                                 break;
@@ -79,7 +79,7 @@ namespace TowerDefence3D
                         target = null;
                     }
 
-                    if (bullet == null)
+                    else if (bullet == null)
                     {
                         watch.Start();
                         if (watch.ElapsedMilliseconds > 750)
