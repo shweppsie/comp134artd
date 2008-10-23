@@ -68,7 +68,7 @@ namespace TowerDefence3D
         #endregion
 
         #region CONSTRUCTOR
-        public Enemy(Vector2 StartPos)
+        public Enemy(Vector2 StartPos, int difficulty)
         {
             positionCurrent = StartPos;
         
@@ -77,7 +77,7 @@ namespace TowerDefence3D
 
             matrix = Matrix.CreateScale(4) * Matrix.CreateTranslation(positionCurrent.X - 120, positionCurrent.Y - 120, 4.0f);
 
-            hp = 20;
+            hp = 15 + difficulty * 5;
             alive = true;
             finished = false;
         }

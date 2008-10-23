@@ -19,7 +19,7 @@ namespace TowerDefence3D
         public Vector3 velocity;
         public Tower origin;
         public Matrix matrix;
-        public const float speed = 15; //higher values makes bullet go slower ^^
+        public const float speed = 5; //higher values makes bullet go slower ^^
         private int i;
 
         public Bullet(Vector3 startPosition, Vector3 Destination, Tower tower)

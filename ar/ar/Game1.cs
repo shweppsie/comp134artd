@@ -60,6 +60,7 @@ namespace projAR
 
         SpriteFont CourierNew;
         SpriteFont CourierNew2;
+        SpriteFont CourierNew3;
 
         //Width of "playfield"
         private const int PlayfieldWidth = 12;
@@ -112,6 +113,7 @@ namespace projAR
         //Game pausing stopwatch
         Stopwatch pauseGame;
         bool paused, gameover;
+        int pausetime;
 
         bool added;
         bool removed;
@@ -125,16 +127,20 @@ namespace projAR
         int score, lives, money;
         const int width = 640;
         const int height = 480;
+        const int winHeight = 768;
 
-        bool drawgrid = true;
+        int difficulty;
+
+        bool drawgrid = false;
         Vector3 startTxt;
+        Vector3 endTxt;
 
         #endregion
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 768;
+            graphics.PreferredBackBufferHeight = winHeight;
             graphics.PreferredBackBufferWidth = 1024;
             this.IsFixedTimeStep = false;
             graphics.SynchronizeWithVerticalRetrace = false;
@@ -188,8 +194,12 @@ namespace projAR
             removed = false;
 
             score = 0;
-            lives = 2;
+            lives = 20;
             money = 100;
+            pausetime = 15000;
+
+            difficulty = 0;
+
 
             spawnPoint = new Point(PlayfieldWidth / 2, 0);
             endPoint = new Point(PlayfieldWidth / 2, 11);
@@ -248,6 +258,7 @@ namespace projAR
 
 
             //Tower Defense stuff
+            CourierNew3 = Content.Load<SpriteFont>("CourierNew3");
             CourierNew2 = Content.Load<SpriteFont>("CourierNew2");
             CourierNew = Content.Load<SpriteFont>("CourierNew");
 
@@ -330,7 +341,7 @@ namespace projAR
             MSState_Prev = MSState_Current;
             MSState_Current = Mouse.GetState();
 
-            if (pauseGame.ElapsedMilliseconds > 15000)
+            if (pauseGame.ElapsedMilliseconds > pausetime)
             {
                 paused = false;
                 pauseGame.Reset();
@@ -472,7 +483,7 @@ namespace projAR
                     {
                         if (enemies[i] == null)
                         {
-                            enemies[i] = new Enemy(new Vector2(spawnPoint.X, spawnPoint.Y) * TileWidth);
+                            enemies[i] = new Enemy(new Vector2(spawnPoint.X, spawnPoint.Y) * TileWidth, difficulty);
                             MoveEnemy(enemies[i], spawnPoint);
                             respawnTime.Reset();
                             respawnTime.Start();
@@ -503,6 +514,11 @@ namespace projAR
                 }
             }
 
+            //increase game difficulty
+            if (score != 0 && score % 30 == 0)
+            {
+                difficulty = score / 30;
+            }
 
             //Run the tower methods
             foreach (Tower tower in Towerz)
@@ -629,6 +645,7 @@ namespace projAR
             //now to draw the markers
             foreach (MyMarkerInfo mmi in ARMarkers.Values)
             {
+                drawgrid = false;
                 //is this marker set to be drawn?
                 if (mmi.draw)
                 {
@@ -646,6 +663,7 @@ namespace projAR
                         camera.mView = view;
                         camera.mProjection = projection;
                         orientation = world;
+                        drawgrid = true;
                     }
                     else
                     //towers
@@ -736,21 +754,37 @@ namespace projAR
                 }
             }
 
-            //startTxt = Matrix.CreateTranslation(new Vector3(spawnPoint.X * 20, spawnPoint.Y * 20, 0)) * orientation;
+           
             startTxt = GraphicsDevice.Viewport.Project(new Vector3(0, -(PlayfieldWidth/2 * TileWidth) - 25, 0), projection, view,  world);
+            endTxt = GraphicsDevice.Viewport.Project(new Vector3(0, (PlayfieldWidth/2 * TileWidth) + 10, 0), projection, view, world);
+                        
+            if (drawgrid)
+            {
+                spriteBatch.DrawString(CourierNew3, "Start", new Vector2(startTxt.X, startTxt.Y), Color.Green);
+                spriteBatch.DrawString(CourierNew3, "End", new Vector2(endTxt.X, endTxt.Y), Color.Red);
+            }
 
-            //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
-            spriteBatch.DrawString(CourierNew, "Lives:  " + lives, new Vector2(10, 0), Color.White);
-            spriteBatch.DrawString(CourierNew, "Score:  " + score, new Vector2(160, 0), Color.White);
-            spriteBatch.DrawString(CourierNew, "Money:  $" + money, new Vector2(310, 0), Color.White);
-            spriteBatch.DrawString(CourierNew, "Start", new Vector2(startTxt.X, startTxt.Y),Color.Green);
             if (paused == true)
-                spriteBatch.DrawString(CourierNew, "Time till start:  " + (15 - pauseGame.ElapsedMilliseconds / 1000) + "s", new Vector2(550, 0), Color.White);
-            spriteBatch.DrawString(CourierNew, "Left click to make a tower (- $10). Right click to sell a tower (+ $10)", new Vector2(10, 30), Color.White);
+            {
+                spriteBatch.DrawString(CourierNew, "Time till start:  " + (15 - pauseGame.ElapsedMilliseconds / 1000) + "s", new Vector2(740, 0), Color.White);
+            }
+
             if (gameover == true)
             {
                 spriteBatch.DrawString(CourierNew2, "Game Over", new Vector2(400, 350), Color.White);
                 spriteBatch.DrawString(CourierNew, "Press 'R' to restart..", new Vector2(380, 400), Color.White);
+            }
+            else
+            {
+                spriteBatch.DrawString(CourierNew, "Lives:  " + lives, new Vector2(10, 0), Color.White);
+                spriteBatch.DrawString(CourierNew, "Score:  " + score, new Vector2(160, 0), Color.White);
+                spriteBatch.DrawString(CourierNew, "Money:  $" + money, new Vector2(310, 0), Color.White);
+                spriteBatch.DrawString(CourierNew, "Difficulty:  " + (difficulty +1), new Vector2(10, 30), Color.White);
+            }
+
+            if (paused)
+            {
+                spriteBatch.DrawString(CourierNew, "Left click to make a tower (- $10). Right click to sell a tower (+ $10)", new Vector2(100, winHeight - 25), Color.White);
             }
             spriteBatch.End();
 
